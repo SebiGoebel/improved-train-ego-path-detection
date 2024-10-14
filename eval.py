@@ -23,22 +23,22 @@ else:
     device = "cpu"
 
 methods = [  # methods to evaluate
-    "classification",
+    #"classification",
     "regression",
-    "segmentation",
+    #"segmentation",
 ]
 backbones = [  # backbones to evaluate
-    "efficientnet-b0",
-    "efficientnet-b1",
-    "efficientnet-b2",
+    #"efficientnet-b0",
+    #"efficientnet-b1",
+    #"efficientnet-b2",
     "efficientnet-b3",
     "resnet18",
-    "resnet34",
-    "resnet50",
+    #"resnet34",
+    #"resnet50",
 ]
 runtimes = [  # runtimes to evaluate
     "pytorch",
-    "tensorrt",
+    #"tensorrt",
 ]
 metrics = [  # metrics to evaluate
     "iou",

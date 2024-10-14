@@ -33,13 +33,36 @@ def regression_to_rails(traj, ylim):
     Returns:
         numpy.ndarray: Ego-path as an array of left and right rail points. Shape of (2, N, 2) with N <= H.
     """
-    limit_idx = round(ylim * traj.shape[1])  # convert ylim to index
+    #print("Input:")
+    #print("traj.shape: ", traj.shape)
+    #print("traj: ", traj)
+    #print("ylimit.shape", ylim.shape)
+    #print("ylimit: ", ylim)
+    #print("----------------------------")
+    #print("traj,shape[1]: ", traj.shape[1])
+    #print("----------------------------")
+    #limit_idx = round(ylim * traj.shape[1])  # convert ylim to index
+    limit_idx = np.floor(ylim * traj.shape[1]).astype(int)
+    #print("limit_idx.shape: no")
+    #print("limit_idx: ", limit_idx)
     switched_idx = np.where(traj[0, :] >= traj[1, :])[0]  # if left rail >= right rail
+    #print("switched_idx.shape: ", switched_idx.shape)
+    #print("switched_idx: ", switched_idx)
     switched_idx = switched_idx[0] if switched_idx.size > 0 else traj.shape[1]
+    #print("switched_idx.shape: no")
+    #print("switched_idx: ", switched_idx)
     crop_idx = min(limit_idx, switched_idx)
+    #print("crop_idx.shape: no")
+    #print("crop_idx: ", crop_idx)
     xrails = np.clip(traj[:, :crop_idx], 0, 1)  # clip traj points to image bounds
+    #print("xrails.shape: ", xrails.shape)
+    #print("xrails: ", xrails)
     yrails = np.linspace(1, 0, traj.shape[1])[:crop_idx]
+    #print("yrails.shape: ", yrails.shape)
+    #print("yrails: ", yrails)
     rails = [np.column_stack((xrails[i, :], yrails)) for i in range(xrails.shape[0])]
+    #print("rails.shape: no")
+    #print("rails: ", rails)
     return np.array(rails)
 
 
@@ -105,3 +128,4 @@ def scale_mask(mask, crop_coords, img_shape):
     else:
         rescaled_mask = mask.resize(img_shape, Image.NEAREST)
     return rescaled_mask
+

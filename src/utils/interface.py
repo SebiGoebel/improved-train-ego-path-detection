@@ -171,6 +171,9 @@ class Detector:
         """     
         original_shape = img.size
         crop_coords = self.get_crop_coords()
+        #if crop_coords is None:
+        #    crop_coords = 0, int(original_shape[1]*0.9), original_shape[0], original_shape[1] # nur die unteren 10 % des bildes am anfang
+        #    #crop_coords = 0, 0, original_shape[0], original_shape[1] # ganzes Bild
         if crop_coords is not None:
             xleft, ytop, xright, ybottom = crop_coords
             img = img.crop((xleft, ytop, xright + 1, ybottom + 1))

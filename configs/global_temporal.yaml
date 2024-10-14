@@ -1,0 +1,162 @@
+# backbone configuration
+pretrained: True  # whether to use pretrained weights for the backbone
+input_shape: [3, 512, 512]  # input size of the model (channels, height, width)
+
+# training configuration
+optimizer: adam  # optimizer name (only "adam" is supported)
+scheduler: one_cycle  # scheduler name (only "one_cycle" is supported, "null" for no scheduler)
+
+# dataset configuration
+#train_prop: 30  # number of the dataset to use for training
+#val_prop: 4  # number of the dataset to use for validation
+#test_prop: 4  # number of the dataset to use for testing
+
+train_indices: [0, 1, 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 27, 29, 30, 31, 33, 34, 36, 37]
+val_indices: [19, 25, 26, 32]
+test_indices: [35, 3, 24, 28]
+# rausgenommen: 10
+# Sequence indexing legende:
+#Sequence 0: sequnce_1074_frame_026820.png to sequnce_1074_frame_026895.png
+#Sequence 1: sequnce_1190_frame_029720.png to sequnce_1190_frame_029795.png
+#Sequence 2: sequnce_125_frame_003095.png to sequnce_125_frame_003170.png
+#Sequence 3: sequnce_132_frame_003270.png to sequnce_132_frame_003345.png
+#Sequence 4: sequnce_1415_frame_035345.png to sequnce_1415_frame_035420.png
+#Sequence 5: sequnce_1955_frame_048845.png to sequnce_1955_frame_048920.png
+#Sequence 6: sequnce_2230_frame_055720.png to sequnce_2230_frame_055795.png
+#Sequence 7: sequnce_275_frame_006845.png to sequnce_275_frame_006920.png
+#Sequence 8: sequnce_2852_frame_071270.png to sequnce_2852_frame_071345.png
+#Sequence 9: sequnce_309_frame_007695.png to sequnce_309_frame_007770.png
+#Sequence 10: sequnce_3103_frame_077545.png to sequnce_3103_frame_077620.png
+#Sequence 11: sequnce_3131_frame_078245.png to sequnce_3131_frame_078320.png
+#Sequence 12: sequnce_3139_frame_078445.png to sequnce_3139_frame_078520.png
+#Sequence 13: sequnce_337_frame_008395.png to sequnce_337_frame_008470.png
+#Sequence 14: sequnce_3421_frame_085495.png to sequnce_3421_frame_085570.png
+#Sequence 15: sequnce_3514_frame_087820.png to sequnce_3514_frame_087895.png
+#Sequence 16: sequnce_355_frame_008845.png to sequnce_355_frame_008920.png
+#Sequence 17: sequnce_3712_frame_092770.png to sequnce_3712_frame_092845.png
+#Sequence 18: sequnce_3715_frame_092845.png to sequnce_3715_frame_092920.png
+#Sequence 19: sequnce_3969_frame_099195.png to sequnce_3969_frame_099270.png
+#Sequence 20: sequnce_3982_frame_099520.png to sequnce_3982_frame_099595.png
+#Sequence 21: sequnce_3984_frame_099570.png to sequnce_3984_frame_099645.png
+#Sequence 22: sequnce_4074_frame_101820.png to sequnce_4074_frame_101895.png
+#Sequence 23: sequnce_408_frame_010170.png to sequnce_408_frame_010245.png
+#Sequence 24: sequnce_4396_frame_109870.png to sequnce_4396_frame_109945.png
+#Sequence 25: sequnce_4597_frame_114895.png to sequnce_4597_frame_114970.png
+#Sequence 26: sequnce_4723_frame_118045.png to sequnce_4723_frame_118120.png
+#Sequence 27: sequnce_4955_frame_123845.png to sequnce_4955_frame_123920.png
+#Sequence 28: sequnce_5058_frame_126420.png to sequnce_5058_frame_126495.png
+#Sequence 29: sequnce_5394_frame_134820.png to sequnce_5394_frame_134895.png
+#Sequence 30: sequnce_55_frame_001345.png to sequnce_55_frame_001420.png
+#Sequence 31: sequnce_591_frame_014745.png to sequnce_591_frame_014820.png
+#Sequence 32: sequnce_5963_frame_149045.png to sequnce_5963_frame_149120.png
+#Sequence 33: sequnce_731_frame_018245.png to sequnce_731_frame_018320.png
+#Sequence 34: sequnce_740_frame_018470.png to sequnce_740_frame_018545.png
+#Sequence 35: sequnce_76_frame_001870.png to sequnce_76_frame_001945.png
+#Sequence 36: sequnce_778_frame_019420.png to sequnce_778_frame_019495.png
+#Sequence 37: sequnce_884_frame_022070.png to sequnce_884_frame_022145.png
+
+
+#sequeces indexing legende flipped dataset:
+#Sequence 0: sequnce_1074_frame_026820.png to sequnce_1074_frame_026895.png
+#Sequence 1: sequnce_1190_frame_029720.png to sequnce_1190_frame_029795.png
+#Sequence 2: sequnce_125_frame_003095.png to sequnce_125_frame_003170.png
+#Sequence 3: sequnce_132_frame_003270.png to sequnce_132_frame_003345.png
+#Sequence 4: sequnce_1415_frame_035345.png to sequnce_1415_frame_035420.png
+#Sequence 5: sequnce_1955_frame_048845.png to sequnce_1955_frame_048920.png
+#Sequence 6: sequnce_2230_frame_055720.png to sequnce_2230_frame_055795.png
+#Sequence 7: sequnce_275_frame_006845.png to sequnce_275_frame_006920.png
+#Sequence 8: sequnce_2852_frame_071270.png to sequnce_2852_frame_071345.png
+#Sequence 9: sequnce_309_frame_007695.png to sequnce_309_frame_007770.png
+#Sequence 10: sequnce_3103_frame_077545.png to sequnce_3103_frame_077620.png
+#Sequence 11: sequnce_3131_frame_078245.png to sequnce_3131_frame_078320.png
+#Sequence 12: sequnce_3139_frame_078445.png to sequnce_3139_frame_078520.png
+#Sequence 13: sequnce_337_frame_008395.png to sequnce_337_frame_008470.png
+#Sequence 14: sequnce_3421_frame_085495.png to sequnce_3421_frame_085570.png
+#Sequence 15: sequnce_3514_frame_087820.png to sequnce_3514_frame_087895.png
+#Sequence 16: sequnce_355_frame_008845.png to sequnce_355_frame_008920.png
+#Sequence 17: sequnce_3712_frame_092770.png to sequnce_3712_frame_092845.png
+#Sequence 18: sequnce_3715_frame_092845.png to sequnce_3715_frame_092920.png
+#Sequence 19: sequnce_3969_frame_099195.png to sequnce_3969_frame_099270.png
+#Sequence 20: sequnce_3982_frame_099520.png to sequnce_3982_frame_099595.png
+#Sequence 21: sequnce_3984_frame_099570.png to sequnce_3984_frame_099645.png
+#Sequence 22: sequnce_4074_frame_101820.png to sequnce_4074_frame_101895.png
+#Sequence 23: sequnce_408_frame_010170.png to sequnce_408_frame_010245.png
+#Sequence 24: sequnce_4396_frame_109870.png to sequnce_4396_frame_109945.png
+#Sequence 25: sequnce_4597_frame_114895.png to sequnce_4597_frame_114970.png
+#Sequence 26: sequnce_4723_frame_118045.png to sequnce_4723_frame_118120.png
+#Sequence 27: sequnce_4955_frame_123845.png to sequnce_4955_frame_123920.png
+#Sequence 28: sequnce_5058_frame_126420.png to sequnce_5058_frame_126495.png
+#Sequence 29: sequnce_5394_frame_134820.png to sequnce_5394_frame_134895.png
+#Sequence 30: sequnce_55_frame_001345.png to sequnce_55_frame_001420.png
+#Sequence 31: sequnce_591_frame_014745.png to sequnce_591_frame_014820.png
+#Sequence 32: sequnce_5963_frame_149045.png to sequnce_5963_frame_149120.png
+#Sequence 33: sequnce_731_frame_018245.png to sequnce_731_frame_018320.png
+#Sequence 34: sequnce_740_frame_018470.png to sequnce_740_frame_018545.png
+#Sequence 35: sequnce_76_frame_001870.png to sequnce_76_frame_001945.png
+#Sequence 36: sequnce_778_frame_019420.png to sequnce_778_frame_019495.png
+#Sequence 37: sequnce_884_frame_022070.png to sequnce_884_frame_022145.png
+#Sequence 38: flipped_sequnce_55_frame_001345.png to flipped_sequnce_55_frame_001420.png
+#Sequence 39: flipped_sequnce_76_frame_001870.png to flipped_sequnce_76_frame_001945.png
+#Sequence 40: flipped_sequnce_125_frame_003095.png to flipped_sequnce_125_frame_003170.png
+#Sequence 41: flipped_sequnce_132_frame_003270.png to flipped_sequnce_132_frame_003345.png
+#Sequence 42: flipped_sequnce_275_frame_006845.png to flipped_sequnce_275_frame_006920.png
+#Sequence 43: flipped_sequnce_309_frame_007695.png to flipped_sequnce_309_frame_007770.png
+#Sequence 44: flipped_sequnce_337_frame_008395.png to flipped_sequnce_337_frame_008470.png
+#Sequence 45: flipped_sequnce_355_frame_008845.png to flipped_sequnce_355_frame_008920.png
+#Sequence 46: flipped_sequnce_408_frame_010170.png to flipped_sequnce_408_frame_010245.png
+#Sequence 47: flipped_sequnce_591_frame_014745.png to flipped_sequnce_591_frame_014820.png
+#Sequence 48: flipped_sequnce_731_frame_018245.png to flipped_sequnce_731_frame_018320.png
+#Sequence 49: flipped_sequnce_740_frame_018470.png to flipped_sequnce_740_frame_018545.png
+#Sequence 50: flipped_sequnce_778_frame_019420.png to flipped_sequnce_778_frame_019495.png
+#Sequence 51: flipped_sequnce_884_frame_022070.png to flipped_sequnce_884_frame_022145.png
+#Sequence 52: flipped_sequnce_1074_frame_026820.png to flipped_sequnce_1074_frame_026895.png
+#Sequence 53: flipped_sequnce_1190_frame_029720.png to flipped_sequnce_1190_frame_029795.png
+#Sequence 54: flipped_sequnce_1415_frame_035345.png to flipped_sequnce_1415_frame_035420.png
+#Sequence 55: flipped_sequnce_1955_frame_048845.png to flipped_sequnce_1955_frame_048920.png
+#Sequence 56: flipped_sequnce_2230_frame_055720.png to flipped_sequnce_2230_frame_055795.png
+#Sequence 57: flipped_sequnce_2852_frame_071270.png to flipped_sequnce_2852_frame_071345.png
+#Sequence 58: flipped_sequnce_3103_frame_077545.png to flipped_sequnce_3103_frame_077620.png
+#Sequence 59: flipped_sequnce_3131_frame_078245.png to flipped_sequnce_3131_frame_078320.png
+#Sequence 60: flipped_sequnce_3139_frame_078445.png to flipped_sequnce_3139_frame_078520.png
+#Sequence 61: flipped_sequnce_3421_frame_085495.png to flipped_sequnce_3421_frame_085570.png
+#Sequence 62: flipped_sequnce_3514_frame_087820.png to flipped_sequnce_3514_frame_087895.png
+#Sequence 63: flipped_sequnce_3712_frame_092770.png to flipped_sequnce_3712_frame_092845.png
+#Sequence 64: flipped_sequnce_3715_frame_092845.png to flipped_sequnce_3715_frame_092920.png
+#Sequence 65: flipped_sequnce_3969_frame_099195.png to flipped_sequnce_3969_frame_099270.png
+#Sequence 66: flipped_sequnce_3982_frame_099520.png to flipped_sequnce_3982_frame_099595.png
+#Sequence 67: flipped_sequnce_3984_frame_099570.png to flipped_sequnce_3984_frame_099645.png
+#Sequence 68: flipped_sequnce_4074_frame_101820.png to flipped_sequnce_4074_frame_101895.png
+#Sequence 69: flipped_sequnce_4396_frame_109870.png to flipped_sequnce_4396_frame_109945.png
+#Sequence 70: flipped_sequnce_4597_frame_114895.png to flipped_sequnce_4597_frame_114970.png
+#Sequence 71: flipped_sequnce_4723_frame_118045.png to flipped_sequnce_4723_frame_118120.png
+#Sequence 72: flipped_sequnce_4955_frame_123845.png to flipped_sequnce_4955_frame_123920.png
+#Sequence 73: flipped_sequnce_5058_frame_126420.png to flipped_sequnce_5058_frame_126495.png
+#Sequence 74: flipped_sequnce_5394_frame_134820.png to flipped_sequnce_5394_frame_134895.png
+#Sequence 75: flipped_sequnce_5963_frame_149045.png to flipped_sequnce_5963_frame_149120.png
+
+workers: 8  # number of workers for the dataloader
+seed: 42  # random seed for reproducibility
+val_iterations: 5  # number of epochs of the validation set to validate the model
+test_iterations: 10  # number of epochs of the test set to test the model
+
+# dataset augmentation configuration
+brightness: 0.5  # brightness factor
+contrast: 0.5  # contrast factor
+saturation: 0.5  # saturation factor
+hue: 0.2  # hue factor
+crop_margin_sides: 0.2 #0.1  # crop margin for the left-right crop augmentation (red rectangle in paper fig. 4)
+crop_margin_top: 0.2 #0.1  # crop margin for the top crop augmentation (red rectangle in paper fig. 4)
+std_dev_factor_sides: 0.3  # standard deviation factor for the left-right crop augmentation
+std_dev_factor_top: 0.1  # standard deviation factor for the top crop augmentation
+
+# paths for temporal dataset
+images_path: "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt/images"  # path to the images directory
+annotations_path: "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt/labels/temporalLabels.json"  # path to the annotations file
+
+# paths for temporal flipped dataset
+#images_path: "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt_flipped/images" # path to the images directory
+#annotations_path: "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt_flipped/labels/combined_temporalLabels.json" # path to the annotations file
+
+# sequence configurations
+sequence_length: 76
+number_images_used: 10

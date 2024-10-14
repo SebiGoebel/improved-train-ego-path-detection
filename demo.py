@@ -40,6 +40,7 @@ if 1 in to_test:
     egopath = detector.detect(img)
     vis = draw_egopath(img, egopath)
     vis.save(os.path.join(base_path, "output", "demo1.jpg"))
+    print("demo1: saved in outputs as demo1.jpg")
 
 # 2) Inference with manual cropping
 if 2 in to_test:
@@ -48,6 +49,7 @@ if 2 in to_test:
     egopath = detector.detect(img)
     vis = draw_egopath(img, egopath, crop_coords=detector.get_crop_coords())
     vis.save(os.path.join(base_path, "output", "demo2.jpg"))
+    print("demo2: saved in outputs as demo2.jpg")
 
 # 3) Inference with automatic cropping
 if 3 in to_test:
@@ -57,6 +59,7 @@ if 3 in to_test:
         egopath = detector.detect(img)
     vis = draw_egopath(img, egopath, crop_coords=crop_coords)
     vis.save(os.path.join(base_path, "output", "demo3.jpg"))
+    print("demo3: saved in outputs as demo3.jpg")
 
 # 4) Methods (classification, regression, segmentation) can be used interchangeably
 if 4 in to_test:
@@ -73,6 +76,7 @@ if 4 in to_test:
         vis = draw_egopath(img, pred, crop_coords=detector.get_crop_coords())
         dst.paste(vis, (img.width * i, 0))
     dst.save(os.path.join(base_path, "output", "demo4.jpg"))
+    print("demo4: saved in outputs as demo4.jpg")
 
 # 5) Inference with TensorRT
 if 5 in to_test:
@@ -86,3 +90,4 @@ if 5 in to_test:
     egopath = detector.detect(img)
     vis = draw_egopath(img, egopath, crop_coords=detector.get_crop_coords())
     vis.save(os.path.join(base_path, "output", "demo5.jpg"))
+    print("demo5: saved in outputs as demo5.jpg")

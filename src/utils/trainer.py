@@ -2,14 +2,13 @@ import os
 import time
 
 import torch
-
 import wandb
-
 
 def train_epoch(model, criterion, device, dataloader, optimizer):
     model.train()
     total_loss = 0
     num_batches = len(dataloader)
+    print("training with num_batches: ", num_batches) # 30
     for data, *target in dataloader:
         data = data.to(device)
         target = (
@@ -23,11 +22,11 @@ def train_epoch(model, criterion, device, dataloader, optimizer):
         total_loss += loss.item()
     return total_loss / num_batches
 
-
 def val_epoch(model, criterion, device, dataloader):
     model.eval()
     total_loss = 0
     num_batches = len(dataloader)
+    print("validation with num_batches: ", num_batches) # 30
     with torch.inference_mode():
         for data, *target in dataloader:
             data = data.to(device)
@@ -39,7 +38,6 @@ def val_epoch(model, criterion, device, dataloader):
             output = model(data)
             loss = criterion(output, target)
             total_loss += loss.item()
-
     return total_loss / num_batches
 
 
@@ -81,7 +79,8 @@ def train(
             val_loss /= val_iterations
         if scheduler is not None:
             scheduler.step()
-        if epoch >= epochs * 0.9 and val_loss < best_val_loss:
+        #if epoch >= epochs * 0.9 and val_loss < best_val_loss: # würde sich nur die letzten 10 % der epochen anschauen
+        if val_loss < best_val_loss:
             best_val_loss = val_loss
             torch.save(model.state_dict(), os.path.join(save_path, "best.pt"))
         logger.info(

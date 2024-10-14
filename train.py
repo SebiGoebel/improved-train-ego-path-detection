@@ -18,11 +18,13 @@ from src.nn.loss import (
 from src.nn.model import ClassificationNet, RegressionNet, SegmentationNet
 from src.utils.common import set_seeds, set_worker_seeds, simple_logger, split_dataset
 from src.utils.dataset import PathsDataset
+from src.utils.interface import Detector
 from src.utils.evaluate import IoUEvaluator
 from src.utils.trainer import train
 
-torch.use_deterministic_algorithms(True)
+#torch.use_deterministic_algorithms(True)
 
+# ----- FUNCTION: parsing arguments -----
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Ego-Path Detection Training Script")
@@ -36,8 +38,10 @@ def parse_arguments():
         "backbone",
         type=str,
         choices=[f"resnet{x}" for x in [18, 34, 50]]
-        + [f"efficientnet-b{x}" for x in [0, 1, 2, 3]],
-        help="Backbone to use (e.g., 'resnet18', 'efficientnet-b3').",
+        + [f"efficientnet-b{x}" for x in [0, 1, 2, 3]]
+        + [f"mobilenet-{x}" for x in ["small", "large"]]
+        + [f"densenet{x}" for x in [121, 161, 169, 201]],
+        help="Backbone to use (e.g., 'resnet18', 'efficientnet-b3', 'mobilenet-small', 'densenet121').",
     )
     parser.add_argument(
         "--device",
@@ -106,6 +110,8 @@ def main(args):
         worker_init_fn=set_worker_seeds,
         generator=torch.Generator().manual_seed(config["seed"]),
     )
+    print("len(train_dataset): ", len(train_dataset))
+    print("len(train_loader): ", len(train_loader))
     val_loader = (
         torch.utils.data.DataLoader(
             val_dataset,
@@ -146,6 +152,8 @@ def main(args):
         ).to(device)
     else:
         raise ValueError
+
+    # ---------------------------------------------------- setting up systems for training (wandb, loss-function, optimizer [Adam], scheduler [OneCycleLR]) ----------------------------------------------------
 
     wandb.init(
         project="train-ego-path-detection",

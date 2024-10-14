@@ -2,9 +2,38 @@ import math
 
 import torch.nn as nn
 
-from .backbone import EfficientNetBackbone, ResNetBackbone
+from .backbone import EfficientNetBackbone, ResNetBackbone, MobileNetV3_Backbone, Densenet_Backbone
 from .decoder import UNetDecoder
 
+poolinglayer = 2 # 0 -> TEP original, kein Pooling Layer
+                 # 1 -> Adaptive Average - Pooling Layer
+                 # 2 -> Adaptive Max     - Pooling layer
+
+headLinearlayers = 3 # 0 -> TEP original, 2 linear layers
+                     # 1 -> depth-head (mehrere Layer mit der gleichen Größe (2048))
+                     # 2 -> width-head (nur 2 oder 3 Linear Layers, aber mit einer größeren Feature size)
+                     # 3 -> trapez-head (wird zuerst groß und dann immer kleiner)
+
+"""
+#. Linear Layer: input, output
+
+DEPTH HEAD
+1. Linear Layer: 2048, 2048
+2. Linear Layer: 2048, 2048
+3. Linear Layer: 2048, 2048
+4. Linear Layer: 2048, 129 (anchors * 2 + 1) [output]
+
+WIDTH HEAD
+1. Linear Layer: 2048, 4096 (2048 * 2)
+2. Linear Layer: 4096, 4096 (2048 * 2)
+3. Linear Layer: 4096, 129 (anchors * 2 + 1) [output]
+
+TRAPEZ HEAD
+1. Linear Layer: 2048, 3584 (2048*1,75)
+2. Linear Layer: 3584, 2560 (2048*1,25)
+3. Linear Layer: 2560, 2048
+4. Linear Layer: 2048, 129 (anchors * 2 + 1) [output]
+"""
 
 class ClassificationNet(nn.Module):
     def __init__(
@@ -82,32 +111,115 @@ class RegressionNet(nn.Module):
         """
         super(RegressionNet, self).__init__()
         if backbone.startswith("efficientnet"):
-            self.backbone = EfficientNetBackbone(
-                version=backbone[13:], pretrained=pretrained
-            )
+            self.backbone = EfficientNetBackbone(version=backbone[13:], pretrained=pretrained)
         elif backbone.startswith("resnet"):
             self.backbone = ResNetBackbone(version=backbone[6:], pretrained=pretrained)
+        elif backbone.startswith("mobilenet"):
+            self.backbone = MobileNetV3_Backbone(version=backbone[10:], pretrained=pretrained)
+        elif backbone.startswith("densenet"):
+            self.backbone = Densenet_Backbone(version=backbone[8:], pretrained=pretrained)
         else:
             raise NotImplementedError
-        self.pool = nn.Conv2d(
-            in_channels=self.backbone.out_channels[-1],
-            out_channels=pool_channels,
-            kernel_size=1,
-        )  # stride=1, padding=0
-        self.fc = nn.Sequential(
-            nn.Linear(
-                pool_channels
-                * math.ceil(input_shape[1] / self.backbone.reduction_factor)
-                * math.ceil(input_shape[2] / self.backbone.reduction_factor),
-                fc_hidden_size,
-            ),
-            nn.ReLU(inplace=True),
-            nn.Linear(fc_hidden_size, anchors * 2 + 1),
-        )
+        
+        if poolinglayer == 0:               #original TEP
+            self.pool = nn.Conv2d(
+                in_channels=self.backbone.out_channels[-1],
+                out_channels=pool_channels,
+                kernel_size=1,
+            )  # stride=1, padding=0
+        elif poolinglayer == 1:             # mit pooling layer
+            self.conv = nn.Conv2d(
+                in_channels=self.backbone.out_channels[-1],
+                out_channels=pool_channels * math.ceil(input_shape[1] / self.backbone.reduction_factor) * math.ceil(input_shape[2] / self.backbone.reduction_factor), # 8*16*16=2048
+                kernel_size=1,
+            )  # stride=1, padding=0
+            self.pool = nn.AdaptiveAvgPool2d((1, 1))  # Global adaptive average pooling
+        elif poolinglayer == 2:
+            self.conv = nn.Conv2d(
+                in_channels=self.backbone.out_channels[-1],
+                out_channels=pool_channels * math.ceil(input_shape[1] / self.backbone.reduction_factor) * math.ceil(input_shape[2] / self.backbone.reduction_factor), # 8*16*16=2048
+                kernel_size=1,
+            )  # stride=1, padding=0
+            self.pool = nn.AdaptiveMaxPool2d((1, 1))  # Global adaptive max pooling
+        
+        if headLinearlayers == 0:               #original TEP
+            self.fc = nn.Sequential(
+                nn.Linear(
+                    pool_channels
+                    * math.ceil(input_shape[1] / self.backbone.reduction_factor)
+                    * math.ceil(input_shape[2] / self.backbone.reduction_factor),
+                    fc_hidden_size,
+                ),
+                nn.ReLU(inplace=True),
+                nn.Linear(fc_hidden_size, anchors * 2 + 1),
+            )
+        elif headLinearlayers == 1:               #depth-head
+            self.fc = nn.Sequential(
+                nn.Linear(
+                    pool_channels
+                    * math.ceil(input_shape[1] / self.backbone.reduction_factor)
+                    * math.ceil(input_shape[2] / self.backbone.reduction_factor), # 2048
+                    fc_hidden_size,
+                ), # 1. Linear Layer (2048, 2048)
+                #nn.BatchNorm1d(fc_hidden_size),
+                nn.ReLU(inplace=True),
+                nn.Linear(fc_hidden_size, fc_hidden_size), # 2. Linear Layer (2048, 2048)
+                #nn.BatchNorm1d(fc_hidden_size),
+                nn.ReLU(inplace=True),
+                nn.Linear(fc_hidden_size, fc_hidden_size), # 3. Linear Layer (2048, 2048)
+                #nn.BatchNorm1d(fc_hidden_size),
+                nn.ReLU(inplace=True),
+                nn.Linear(fc_hidden_size, anchors * 2 + 1), # 4. Linear Layer (2048, 129 [output])
+            )
+        elif headLinearlayers == 2:               #width-head
+            self.fc = nn.Sequential(
+                nn.Linear(
+                    pool_channels
+                    * math.ceil(input_shape[1] / self.backbone.reduction_factor)
+                    * math.ceil(input_shape[2] / self.backbone.reduction_factor),
+                    fc_hidden_size * 2,
+                ), # 1. Linear Layer (2048, 2048*2)
+                #nn.BatchNorm1d(fc_hidden_size * 2),
+                nn.ReLU(inplace=True),
+                nn.Linear(fc_hidden_size * 2, fc_hidden_size * 2), # 2. Linear Layer (2048*2, 2048*2)
+                #nn.BatchNorm1d(fc_hidden_size * 2),
+                nn.ReLU(inplace=True),
+                nn.Linear(fc_hidden_size * 2, anchors * 2 + 1), # 3. Linear Layer (2048*2, 129 [output])
+            )
+        elif headLinearlayers == 3:               #trapez-head
+            self.fc = nn.Sequential(
+                nn.Linear(
+                    pool_channels
+                    * math.ceil(input_shape[1] / self.backbone.reduction_factor)
+                    * math.ceil(input_shape[2] / self.backbone.reduction_factor), # 2048
+                    int(fc_hidden_size * 1.75), # 3584
+                ), # 1. Linear Layer (2048, 2048*1.75)
+                #nn.BatchNorm1d(int(fc_hidden_size * 1.75)),
+                nn.ReLU(inplace=True),
+                nn.Linear(int(fc_hidden_size * 1.75), int(fc_hidden_size * 1.25)), # 2. Linear Layer (2048*1.75, 2048*1.25)
+                #nn.BatchNorm1d(int(fc_hidden_size * 1.25)),
+                nn.ReLU(inplace=True),
+                nn.Linear(int(fc_hidden_size * 1.25), fc_hidden_size), # 3. Linear Layer (2048*1.25, 2048)
+                #nn.BatchNorm1d(fc_hidden_size),
+                nn.ReLU(inplace=True),
+                nn.Linear(fc_hidden_size, anchors * 2 + 1), # 4. Linear Layer (2048, 129 [output])
+            )
 
     def forward(self, x):
         x = self.backbone(x)[0]
-        fea = self.pool(x).flatten(start_dim=1)
+        
+        if poolinglayer == 0:
+            # original TEP
+            fea = self.pool(x).flatten(start_dim=1)
+        elif poolinglayer == 1:
+            # with average pooling layer
+            x = self.conv(x)
+            fea = self.pool(x).flatten(start_dim=1)
+        elif poolinglayer == 2:
+            # with max pooling layer
+            x = self.conv(x)
+            fea = self.pool(x).flatten(start_dim=1)
+
         reg = self.fc(fea)
         return reg
 

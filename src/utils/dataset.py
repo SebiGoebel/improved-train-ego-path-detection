@@ -19,7 +19,9 @@ class PathsDataset(Dataset):
         indices,
         config,
         method,
+        img_crop, # tuple or str or None
         img_aug=False,
+        img_rd_flip=True,
         to_tensor=False,
     ):
         """Initializes the dataset for ego-path detection.
@@ -30,7 +32,12 @@ class PathsDataset(Dataset):
             indices (list): List of indices to use in the dataset.
             config (dict): Data generation configuration.
             method (str): Method to use for ground truth generation ("classification", "regression" or "segmentation").
+            img_crop (tuple or str or None): Coordinates to use for cropping as dataaugmentaiton on the input image:
+                - If str, should be "random" to use random cropping (as dataaugmentation).
+                - If tuple, should be the inclusive absolute coordinates (diff_crop_left, diff_crop_right, diff_crop_top) of the fixed region.
+                - If None, no cropping is performed. Whole image is used. (-> for evaluating with autocrop later on)
             img_aug (bool, optional): Whether to use stochastic image adjustment (brightness, contrast, saturation and hue). Defaults to False.
+            img_rd_flip (bool, optional): Whether to use a random flip on image. Defaults to True.
             to_tensor (bool, optional): Whether to return a ready to infer tensor (scaled and possibly resized). Defaults to False.
         """
         os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -40,6 +47,12 @@ class PathsDataset(Dataset):
         self.imgs = [sorted(self.annotations.keys())[i] for i in indices]
         self.config = config
         self.method = method
+        self.img_rd_flip = img_rd_flip
+
+        if (isinstance(img_crop, tuple) and len(img_crop) == 3) or img_crop == "random":
+            self.img_crop = img_crop
+        else:
+            self.img_crop = None
 
         self.img_aug = (
             transforms.ColorJitter(
@@ -65,14 +78,57 @@ class PathsDataset(Dataset):
 
     def __len__(self):
         return len(self.imgs)
-
+    
+    """
     def __getitem__(self, idx):
         img_name = self.imgs[idx]
         img = Image.open(os.path.join(self.imgs_path, img_name))
         annotation = self.annotations[img_name]
         rails_mask = self.generate_rails_mask(img.size, annotation)
         img, rails_mask = self.random_crop(img, rails_mask)
-        img, rails_mask = self.random_flip_lr(img, rails_mask)
+        if self.img_rd_flip:
+            img, rails_mask = self.random_flip_lr(img, rails_mask)
+        if self.to_tensor:
+            img = self.to_tensor(img)
+        if self.img_aug:
+            img = self.img_aug(img)
+        if self.method == "regression":
+            path_gt, ylim_gt = self.generate_target_regression(rails_mask)
+            if self.to_tensor:
+                path_gt = torch.from_numpy(path_gt)
+                ylim_gt = torch.tensor(ylim_gt)
+            return img, path_gt, ylim_gt
+        elif self.method == "classification":
+            path_gt = self.generate_target_classification(rails_mask)
+            if self.to_tensor:
+                path_gt = torch.from_numpy(path_gt)
+            return img, path_gt
+        elif self.method == "segmentation":
+            segmentation = self.generate_target_segmentation(rails_mask)
+            if self.to_tensor:
+                segmentation = segmentation.resize(
+                    self.config["input_shape"][1:][::-1], Image.NEAREST
+                )
+                segmentation = to_scaled_tensor(segmentation)
+            return img, segmentation
+    """
+    
+    def __getitem__(self, idx):
+        img_name = self.imgs[idx]
+        img = Image.open(os.path.join(self.imgs_path, img_name))
+        annotation = self.annotations[img_name]
+        rails_mask = self.generate_rails_mask(img.size, annotation)
+        
+        if isinstance(self.img_crop, tuple) and len(self.img_crop) == 3: # eval crops
+            diff_crop_left, diff_crop_right, diff_crop_top = self.img_crop
+            img, rails_mask = self.get_crop(img, rails_mask, diff_crop_left, diff_crop_right, diff_crop_top) # just get the crop of the red rectangle without any random factors
+        elif self.img_crop == "random":
+            img, rails_mask = self.random_crop(img, rails_mask)
+        # self.img_crop == None -> whole image
+
+        if self.img_rd_flip:
+            img, rails_mask = self.random_flip_lr(img, rails_mask)
+
         if self.to_tensor:
             img = self.to_tensor(img)
         if self.img_aug:
@@ -97,6 +153,7 @@ class PathsDataset(Dataset):
                 segmentation = to_scaled_tensor(segmentation)
             return img, segmentation
 
+
     def generate_rails_mask(self, shape, annotation):
         rails_mask = Image.new("L", shape, 0)
         draw = ImageDraw.Draw(rails_mask)
@@ -108,6 +165,73 @@ class PathsDataset(Dataset):
         for row_idx in np.where(np.sum(rails_mask, axis=1) > 2)[0]:
             rails_mask[row_idx, np.nonzero(rails_mask[row_idx, :])[0][1:-1]] = 0
         return rails_mask
+
+    def get_crop(self, img, rails_mask, diff_crop_left, diff_crop_right, diff_crop_top):
+        """ This function takes the difference from the red rectangle and a single image
+            and calculates the new crop according to the annotation and the differences.
+            This way, a different evaluation crops can be used to get an overview of the models performance with defined crops.
+            
+            Args:
+            img: a single image (can be any image of the sequence, but in this case its the first one)
+            rails_maks: the rails_mask of the corresponding image
+            diff_crop_left, diff_crop_right, diff_crop_top: the difference from the random crop to the red borders
+
+            Return:
+            img, rails_mask: cropped image and rail_mask
+        """
+        # extract sides rails coordinates (yellow rectangle in paper fig. 4)
+        rails_mask_last_line = rails_mask[-1, :]                        # last line
+        rails_mask_last_line_idx = np.nonzero(rails_mask_last_line)[0]  # idxs in last line
+        most_left_rail = np.nonzero(np.sum(rails_mask, axis=0))[0][0]   # yellow left
+        most_right_rail = np.nonzero(np.sum(rails_mask, axis=0))[0][-1] # yellow right
+        # center the crop around the rails (orange rectangle in paper fig. 4)
+        base_margin_left = rails_mask_last_line_idx[0] - most_left_rail     # abstand gelbe grenzen zu rails in untersten zeile
+        base_margin_right = most_right_rail - rails_mask_last_line_idx[-1]  # abstand gelbe grenzen zu rails in untersten zeile
+        max_base_margin = max(base_margin_left, base_margin_right, 0)       # nimm den größeren abstand
+        mean_crop_left = rails_mask_last_line_idx[0] - max_base_margin      # füge den abstand hinzu (in die korrekte Richtung)
+        mean_crop_right = rails_mask_last_line_idx[-1] + max_base_margin    # füge den abstand hinzu (in die korrekte Richtung)
+        # add sides margins (red rectangle in paper fig. 4)
+        base_width = mean_crop_right - mean_crop_left + 1
+        mean_crop_left -= base_width * self.config["crop_margin_sides"]
+        mean_crop_right += base_width * self.config["crop_margin_sides"]
+        # bis dahin hat man die grenzen nach links und rechts vom roten Rechteck (äußerstes Rechteck) !!!!!
+
+        # extract top rails coordinates (yellow rectangle in paper fig. 4)
+        most_top_rail = np.nonzero(np.sum(rails_mask, axis=1))[0][0] # yellow top
+        # add top margin (red rectangle in paper fig. 4)
+        rail_height = img.height - most_top_rail
+        mean_crop_top = most_top_rail - rail_height * self.config["crop_margin_top"]
+
+        # red borders: mean_crop_left, mean_crop_right, mean_crop_top
+        # differences: diff_crop_left, diff_crop_right, diff_crop_top
+        new_crop_left = mean_crop_left + diff_crop_left
+        new_crop_right = mean_crop_right + diff_crop_right
+        new_crop_top = mean_crop_top + diff_crop_top
+
+        new_crop_left = round(new_crop_left)
+        new_crop_right = round(new_crop_right)
+        new_crop_top = round(new_crop_top)
+
+        # new left crop
+        if new_crop_left > rails_mask_last_line_idx[0]:
+            new_crop_left = 2 * rails_mask_last_line_idx[0] - new_crop_left   # check if rails are in crop !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! rausnehmen für crops die nicht die gesamte rail drin haben
+        new_crop_left = max(new_crop_left, 0)                                 # check if crop is in image
+        # new right crop
+        if new_crop_right < rails_mask_last_line_idx[-1]:
+            new_crop_right = 2 * rails_mask_last_line_idx[-1] - new_crop_right # check if rails are in crop !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! rausnehmen für crops die nicht die gesamte rail drin haben
+        new_crop_right = min(new_crop_right, img.width - 1)                    # check if crop is in image
+        # new top crop
+        new_crop_top = max(new_crop_top, 0)               # check if crop is in image
+        new_crop_top = min(new_crop_top, img.height - 2)  # check if crop is at least 2 rows (braucht man sonst ist der crop viel zu klein und das model hat sowieso eine IoU von 0)
+
+        # crop image and mask
+        img = img.crop(
+            (new_crop_left, new_crop_top, new_crop_right + 1, img.height)
+        )
+        rails_mask = rails_mask[
+            new_crop_top:, new_crop_left : new_crop_right + 1
+        ]
+        return img, rails_mask
 
     def random_crop(self, img, rails_mask):
         # extract sides rails coordinates (red rectangle in paper fig. 4)
@@ -230,8 +354,13 @@ class PathsDataset(Dataset):
     def get_perspective_weight_limit(self, percentile, logger):
         logger.info("\nCalculating perspective weight limit...")
         weights = []
+        #limit = 23.24 # wegnehmen
+        print("length of dataset:", len(self))
         for i in range(len(self)):
             _, traj, ylim = self[i]
+            # _ --> image Tensor.size([3, 512, 512])
+            # traj --> trajectory from image
+            # ylim --> ylim from image
             rails = regression_to_rails(traj.numpy(), ylim.item())
             left_rail, right_rail = rails
             rail_width = right_rail[:, 0] - left_rail[:, 0]

@@ -96,7 +96,7 @@ def main(args):
 
     if extension in [".jpg", ".jpeg", ".png"]:
         frame = Image.open(args.input)
-        for _ in range(50 if crop_coords == "auto" else 1):
+        for i in range(50 if crop_coords == "auto" else 1):
             crop = detector.get_crop_coords() if args.show_crop else None
             res = detector.detect(frame)
         draw_egopath(frame, res, crop_coords=crop).save(output_path)
