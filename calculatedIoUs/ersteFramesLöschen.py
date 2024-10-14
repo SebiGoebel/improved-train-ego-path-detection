@@ -9,12 +9,12 @@ def lösche_warmup_indices(liste, löschen=29, schritt=76):
     return ergebnis
 
 # datei einlesen
-with open("calculateIoU_singleFrame_video_ious_kind-donkey-84_0_frames_gelöscht_newDataset.txt", "r") as file:
+with open("calculateIoU_singleFrame_video_ious_kind-donkey-84_newDataset_ganzesDataset_0_frames_gelöscht.txt", "r") as file:
     numbers = [float(line.strip()) for line in file.readlines()]
 
 numbers = lösche_warmup_indices(numbers)
 
 # Liste in eine neue Datei (test_out.txt) schreiben
-with open("calculateIoU_singleFrame_video_ious_kind-donkey-84_29_frames_gelöscht_newDataset.txt", "w") as output_file:
+with open("calculateIoU_singleFrame_video_ious_kind-donkey-84_newDataset_ganzesDataset_29_frames_gelöscht.txt", "w") as output_file:
     for number in numbers:
         output_file.write(f"{number}\n")
