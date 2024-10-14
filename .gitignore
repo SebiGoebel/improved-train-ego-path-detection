@@ -3,6 +3,9 @@ output/
 wandb/
 data/
 
+# alle test files (beginnen alle mit 'test_')
+test_* 
+
 **/__pycache__
 **/.DS_Store
 .vscode/
