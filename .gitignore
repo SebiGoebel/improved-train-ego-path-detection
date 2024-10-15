@@ -1,11 +1,24 @@
+**/__pycache__
+**/.DS_Store
+.vscode/
+
+# folders
 weights/
 output/
 wandb/
-data/
+
+# data folders
+tempData_Austria_Salzburg_Villach/
+tempData_Austria_Salzburg_Villach_out/
+tempData_Austria_Salzburg_Villach_jsons/
+seqData/
+seqData_jsons/
+seqData_out/
+
+# data files
+temporalDataset_video.mp4
+temporalDataset_video_out.mp4
 
 # alle test files (beginnen alle mit 'test_')
 test_* 
 
-**/__pycache__
-**/.DS_Store
-.vscode/

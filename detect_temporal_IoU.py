@@ -1,14 +1,14 @@
 """
-    python detect_temporal_IoU.py brisk-terrain-341 data/temporalDataset_video.mp4 --output data/temporalDataset_video_test.mp4 --end 120 --show-crop --device cuda:0
+    python detect_temporal_IoU.py quiet-field-354 data/temporalDataset_video.mp4 --output data/temporalDataset_video_test.mp4 --end 120 --show-crop --device cuda:0
 """
 
 # %%
 
 # Simulate command-line arguments
 import sys
-#sys.argv = ['ipykernel_launcher.py', 'brisk-terrain-341', 'data/temporalDataset_video.mp4', '--end',  '120', '--show-crop', '--device', 'cuda:1'] # zum testen nur 120 sekunden
-sys.argv = ['ipykernel_launcher.py', 'brisk-terrain-341', 'data/temporalDataset_video.mp4', '--show-crop', '--device', 'cuda:1']
-# python detect_temporal_IoU.py brisk-terrain-341 data/temporalDataset_video.mp4 --output data/temporalDataset_video_test.mp4 --end 120 --show-crop --device cuda:0
+#sys.argv = ['ipykernel_launcher.py', 'quiet-field-354', 'data/temporalDataset_video.mp4', '--end',  '120', '--show-crop', '--device', 'cuda:1'] # zum testen nur 120 sekunden
+sys.argv = ['ipykernel_launcher.py', 'quiet-field-354', 'data/temporalDataset_video.mp4', '--show-crop', '--device', 'cuda:1']
+# python detect_temporal_IoU.py quiet-field-354 data/temporalDataset_video.mp4 --output data/temporalDataset_video_test.mp4 --end 120 --show-crop --device cuda:0
 
 import argparse
 import os
@@ -20,7 +20,7 @@ import numpy as np
 import torch
 from PIL import Image, ImageDraw
 
-from src.utils.common import set_seeds, simple_logger, split_dataset_by_sequence
+from src.utils.common import set_seeds, simple_logger, split_dataset_by_sequence, split_dataset_by_sequence_from_lists
 from src.utils.interface_temporal import DetectorTemporal
 from src.utils.visualization import draw_egopath, drawAnnotation
 import matplotlib.pyplot as plt
@@ -250,9 +250,24 @@ def main(args):
         set_seeds(config["seed"])  # set random state
         image_path = config['images_path']
         annotations_path = config['annotations_path']
-        proportions = (config["train_prop"], config["val_prop"], config["test_prop"])
-        print(proportions)
-        train_indices, val_indices, test_indices = split_dataset_by_sequence(image_path, proportions)
+        #proportions = (config["train_prop"], config["val_prop"], config["test_prop"])
+        #print(proportions)
+        #train_indices, val_indices, test_indices = split_dataset_by_sequence(image_path, proportions)
+
+        train_sequence_indices = [0, 1, 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 27, 29, 30, 31, 33, 34, 36, 37]
+        val_sequence_indices = [19, 25, 26, 32]
+        test_sequence_indices = [35, 3, 24, 28]
+        # rausgenommen: 10
+
+        # whole dataset in testset
+        test_sequence_indices = train_sequence_indices + val_sequence_indices + test_sequence_indices
+
+        print(train_sequence_indices)
+        print(val_sequence_indices)
+        print(test_sequence_indices)
+
+        train_indices, val_indices, test_indices = split_dataset_by_sequence_from_lists(image_path, train_sequence_indices, val_sequence_indices, test_sequence_indices)
+
         print("test_indices:")
         print(test_indices)
         print("length test indices: ", len(test_indices))
@@ -366,7 +381,7 @@ def main(args):
             ious = np.array(ious) # convert to np array
             
             print("writing average IoUs to txt file ...")
-            with open('calculateIoU_singleFrame_video_ious_brisk-terrain-341.txt', 'w') as file:
+            with open('calculateIoU_singleFrame_video_ious_quiet-field-354.txt', 'w') as file:
                 for item in ious:
                     file.write(f"{item}\n")  # Jeden Wert in einer neuen Zeile schreiben
 
