@@ -260,7 +260,7 @@ def main(args):
         # rausgenommen: 10
 
         # whole dataset in testset
-        test_sequence_indices = train_sequence_indices + val_sequence_indices + test_sequence_indices
+        #test_sequence_indices = train_sequence_indices + val_sequence_indices + test_sequence_indices
 
         print(train_sequence_indices)
         print(val_sequence_indices)
@@ -381,7 +381,7 @@ def main(args):
             ious = np.array(ious) # convert to np array
             
             print("writing average IoUs to txt file ...")
-            with open('calculateIoU_singleFrame_video_ious_quiet-field-354.txt', 'w') as file:
+            with open('calculateIoU_temporal_video_ious_quiet-field-354_newDataset_0_frames_gelöscht.txt', 'w') as file:
                 for item in ious:
                     file.write(f"{item}\n")  # Jeden Wert in einer neuen Zeile schreiben
 
