@@ -16,6 +16,7 @@ seqData_jsons/
 seqData_out/
 
 # data files
+# videos leider zu groß für github
 temporalDataset_video.mp4
 temporalDataset_video_out.mp4
 Video_1.mp4
