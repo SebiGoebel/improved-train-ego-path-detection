@@ -18,6 +18,9 @@ seqData_out/
 # data files
 temporalDataset_video.mp4
 temporalDataset_video_out.mp4
+Video_1.mp4
+Video_2.mp4
+Video_3.mp4
 
 # alle test files (beginnen alle mit 'test_')
 test_* 
