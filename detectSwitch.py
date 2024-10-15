@@ -1,3 +1,7 @@
+"""
+This skript saves the points of a single horizontal line and plots the behaviour on a graph.
+"""
+
 #%%
 import argparse
 import os
