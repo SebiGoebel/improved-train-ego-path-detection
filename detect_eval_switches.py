@@ -1,3 +1,11 @@
+"""
+This skript is for evaluating the single-frame-based models on the switch evaluation dataset,
+which is created from the validation- and test-dataset of RailSem19 with the TEP-Annotations.
+
+Command:
+python detect_eval_switches.py logical-tree-1 data/weichenEvalImages_test_val_filtered_74_switches/ --output weichenEval_resnet18 --show-crop --device cuda:0
+"""
+
 import argparse
 import os
 
