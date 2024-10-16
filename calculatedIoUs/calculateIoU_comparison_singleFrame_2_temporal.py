@@ -26,13 +26,15 @@ sys.argv = ['ipykernel_launcher.py']
 import numpy as np
 import matplotlib.pyplot as plt
 
+lösche_ersten_warmup_indices = 0
+
 # Funktion zum Einlesen einer Liste aus einer Textdatei
 def read_list_from_file(file_path):
     with open(file_path, 'r') as file:
         return [float(line.strip()) for line in file.readlines()]
 
 
-def split_into_parts(ious, part_size=67):
+def split_into_parts(ious, part_size=76):
     #return [ious[i:i + part_size] for i in range(0, len(ious), part_size)]
     parts = [ious[i:i + part_size] for i in range(0, len(ious), part_size)]
     mean_values = [np.mean(part, axis=0) for part in parts]  # axis=0, um den Mittelwert über die Zeilen zu berechnen
@@ -58,16 +60,16 @@ def plot_ious(single_frame_based, sequence_based_1, sequence_based_2, sequence_b
     plt.show()
 
 # Einlesen der Listen aus den Textdateien
-single_frame_based = read_list_from_file('calculateIoU_singleFrame_average_ious.txt')  # Erste Liste                    - single-frame-based
-sequence_based_1 = read_list_from_file('calculateIoU_temporal_average_ious_vocal-wildflower-311.txt')  # Zweite Liste   - RegressionNetCNN_FC_LSTM
-sequence_based_2 = read_list_from_file('calculateIoU_temporal_average_ious_vital-glade-322.txt')  # Dritte Liste        - RegressionNetCNN_LSTM
-sequence_based_3 = read_list_from_file('calculateIoU_temporal_average_ious_vivid-feather-328.txt')  # Vierte Liste      - RegressionNetCNN_FC_FCOUT
+single_frame_based = read_list_from_file('calculateIoU_singleFrame_video_ious_kind-donkey-84_newDataset_0_frames_gelöscht.txt')  # Erste Liste                    - single-frame-based
+sequence_based_1 = read_list_from_file('calculateIoU_temporal_video_ious_quiet-field-354_newDataset_0_frames_gelöscht.txt')  # Zweite Liste   - RegressionNetCNN_FC_LSTM
+sequence_based_2 = read_list_from_file('calculateIoU_temporal_video_ious_fiery-lion-355_newDataset_0_frames_gelöscht.txt')  # Dritte Liste        - RegressionNetCNN_LSTM
+sequence_based_3 = read_list_from_file('calculateIoU_temporal_video_ious_radiant-silence-356_newDataset_0_frames_gelöscht.txt')  # Vierte Liste      - RegressionNetCNN_FC_FCOUT
 
 # Aufteilen der Listen in die Sequencen
-single_frame_based_parts, means_per_seq_single_frame_based = split_into_parts(single_frame_based, 76-10+1)
-sequence_based_1_parts, means_per_seq_1_sequence_based = split_into_parts(sequence_based_1, 76-10+1)
-sequence_based_2_parts, means_per_seq_2_sequence_based = split_into_parts(sequence_based_2, 76-10+1)
-sequence_based_3_parts, means_per_seq_3_sequence_based = split_into_parts(sequence_based_3, 76-10+1)
+single_frame_based_parts, means_per_seq_single_frame_based = split_into_parts(single_frame_based, 76-lösche_ersten_warmup_indices)
+sequence_based_1_parts, means_per_seq_1_sequence_based = split_into_parts(sequence_based_1, 76-lösche_ersten_warmup_indices)
+sequence_based_2_parts, means_per_seq_2_sequence_based = split_into_parts(sequence_based_2, 76-lösche_ersten_warmup_indices)
+sequence_based_3_parts, means_per_seq_3_sequence_based = split_into_parts(sequence_based_3, 76-lösche_ersten_warmup_indices)
 
 # Für jeden Teil einen separaten Plot erstellen
 for sequence_num in range(len(single_frame_based_parts)):
