@@ -350,7 +350,7 @@ def main(args):
                         img_name = frame_dict.get(current_frame, "Frame-Index nicht gefunden") # gets right annotation-key
                         annotation = annotations[img_name]                                     # gets annotation from json
                         vis = drawAnnotation(vis, annotation)                                  # draws annotations for visual comparison
-                        rails_mask = generate_rails_mask(frames[-1].size, annotation)               # converts GT to a binary mask --> only rails
+                        rails_mask = generate_rails_mask(frames[-1].size, annotation)          # converts GT to a binary mask --> only rails
                         target = generate_target_segmentation(rails_mask)                      # converts GT from only rails to a binary mask --> whole track-bed
                         ious.append(compute_iou(pred, target))                                 # computes IoU - between 2 binary masks (prediction and GT are rails and track-bed area)
                     else:
@@ -381,7 +381,7 @@ def main(args):
             ious = np.array(ious) # convert to np array
             
             print("writing average IoUs to txt file ...")
-            with open('calculateIoU_temporal_video_ious_quiet-field-354_newDataset_0_frames_gelöscht.txt', 'w') as file:
+            with open('calculateIoU_temporal_video_ious_fiery-lion-355_newDataset_0_frames_gelöscht.txt', 'w') as file:
                 for item in ious:
                     file.write(f"{item}\n")  # Jeden Wert in einer neuen Zeile schreiben
 

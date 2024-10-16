@@ -1,4 +1,5 @@
 import math
+import torch
 import torch.nn as nn
 import time
 
@@ -192,11 +193,6 @@ class RegressionNetCNN_LSTM_FC(nn.Module):
         reg = self.fc(lstm_out)
         return reg
 
-
-
-
-
-
 class RegressionNetCNN_FC_LSTM(nn.Module):
     def __init__(
         self,
@@ -382,7 +378,6 @@ class RegressionNetCNN_FC_LSTM(nn.Module):
         
         return reg
 
-
 class RegressionNetCNN_FC_FCOUT(nn.Module):
     def __init__(
         self,
@@ -537,9 +532,6 @@ class RegressionNetCNN_FC_FCOUT(nn.Module):
         
         return reg
 
-
-
-
 class RegressionNetCNN_LSTM(nn.Module):
     def __init__(
         self,
@@ -692,7 +684,164 @@ class RegressionNetCNN_LSTM(nn.Module):
         #print("---")
         
         return reg
-    
+
+class RegressionNetCNN_LSTM_V2(nn.Module):
+    def __init__(
+        self,
+        backbone,
+        input_shape,
+        anchors,
+        pool_channels,
+        fc_hidden_size,
+        pretrained=False,
+    ):
+        """Initializes the train ego-path detection model for the regression method.
+
+        Args:
+            backbone (str): Backbone to use in the model (e.g. "resnet18", "efficientnet-b3", etc.).
+            input_shape (tuple): Input shape (C, H, W).
+            anchors (int): Number of horizontal anchors in the input image where the path is regressed.
+            pool_channels (int): Number of output channels of the pooling layer.
+            fc_hidden_size (int): Number of units in the hidden layer of the fully connected part.
+            pretrained (bool, optional): Whether to use pretrained weights for the backbone. Defaults to False.
+        """
+        super(RegressionNetCNN_LSTM_V2, self).__init__()
+        if backbone.startswith("efficientnet"):
+            self.backbone = EfficientNetBackbone(version=backbone[13:], pretrained=pretrained)
+        elif backbone.startswith("resnet"):
+            self.backbone = ResNetBackbone(version=backbone[6:], pretrained=pretrained)
+        elif backbone.startswith("mobilenet"):
+            self.backbone = MobileNetV3_Backbone(version=backbone[10:], pretrained=pretrained)
+        elif backbone.startswith("densenet"):
+            self.backbone = Densenet_Backbone(version=backbone[8:], pretrained=pretrained)
+        else:
+            raise NotImplementedError
+        
+        self.num_channels = pool_channels * math.ceil(input_shape[1] / self.backbone.reduction_factor) * math.ceil(input_shape[2] / self.backbone.reduction_factor) # 8*(512/32)*(512/32)=2048 // 8*16*16=2048
+
+        if poolinglayer == 0:               #original TEP
+            self.pool = nn.Conv2d(
+                in_channels=self.backbone.out_channels[-1],
+                out_channels=pool_channels,
+                kernel_size=1,
+            )  # stride=1, padding=0
+        elif poolinglayer == 1:             # mit pooling layer
+            self.conv = nn.Conv2d(
+                in_channels=self.backbone.out_channels[-1],
+                out_channels=self.num_channels, # 2048
+                kernel_size=1,
+            )  # stride=1, padding=0
+            self.pool = nn.AdaptiveAvgPool2d((1, 1))  # Global adaptive average pooling
+        elif poolinglayer == 2:
+            self.conv = nn.Conv2d(
+                in_channels=self.backbone.out_channels[-1],
+                out_channels=self.num_channels, # 2048
+                kernel_size=1,
+            )  # stride=1, padding=0
+            self.pool = nn.AdaptiveMaxPool2d((1, 1))  # Global adaptive max pooling
+
+        # Define fully connected layers
+        self.fc = nn.Sequential(
+            nn.Linear(self.num_channels, CNN_LSTM_lstm_input_size), # 1. Linear Layer (2048, 65)
+            nn.ReLU(inplace=True),
+        )
+        
+        # LSTM layer
+        self.lstm = nn.LSTM(input_size=CNN_LSTM_lstm_input_size,  # input size = 65
+                            hidden_size=CNN_LSTM_lstm_hidden_size, # hidden size = 65
+                            num_layers=CNN_LSTM_num_lstm_layers, batch_first=True) # layers = 2
+        
+        self.scale = nn.Parameter(1/2*torch.ones(CNN_LSTM_lstm_input_size),requires_grad=True)
+        self.offset = nn.Parameter(0.5*torch.ones(CNN_LSTM_lstm_input_size),requires_grad=True)
+
+        if fc_out:
+            self.fc_out = nn.Sequential(
+                nn.ReLU(inplace=False), # inplace = False sonst Probleme mit LSTM
+                nn.Linear(CNN_LSTM_lstm_hidden_size, anchors * 2 + 1), # 2. Linear Layer after LSTM (65, 129 [output])
+            )
+
+    def forward(self, x):
+        #start_time_backbone = time.time()
+        
+        # x must be [batch_size], seq_len, inputsize (-1) bzw. channel_size
+        shape = x.shape
+
+        if len(x.shape) == 5:
+            x = x.view(shape[0]*shape[1], *shape[2:]) # (batch_size * seq_len, C, H, W)
+        else:
+            ValueError("Input Tensor for Backbone has uncorrect dimensions !!!")
+        self.backbone.eval() # um auch batch_norm zu freezen
+        x = self.backbone(x)[0]
+
+        if poolinglayer == 0:
+            # original TEP
+            fea = self.pool(x).flatten(start_dim=1)
+        elif poolinglayer == 1 or poolinglayer == 2:
+            # with pooling layers
+            x = self.conv(x)
+            fea = self.pool(x).flatten(start_dim=1)
+        
+        #print("after cnn output dimensions: ", fea.shape)
+
+        # Fully connected layers
+        fea = self.fc(fea)
+
+        #print("after fc output dimensions: ", fea.shape)
+
+        shape_fc_output = fea.shape # [batch_size * seq_len, output_size (129)]
+
+        # Reshape for LSTM (batch_size, seq_len, input_size=self.num_channels)
+        if len(shape) == 5:
+            # training:
+            # batch_size = übernehmen, seq_len = übernehmen, num_channels = übernehmen von CNN
+            fea = fea.view(shape[0], shape[1], shape_fc_output[1])
+            
+        elif len(shape) == 4:
+            # inference:
+            # batch_size = 1, seq_len = übernehmen, num_channels = übernehmen von CNN
+            fea = fea.view(1, shape[0], shape_fc_output[1])
+
+        # Time before LSTM
+        #start_time_lstm = time.time()
+
+        # Apply LSTM
+        lstm_out, _ = self.lstm(fea)
+
+        lstm_out = lstm_out*self.scale.view(1,1,-1) + self.offset.view(1,1,-1)
+
+        # Time after LSTM
+        #end_time_lstm = time.time()
+
+        #print("after lstm output dimensions: ", lstm_out.shape)
+
+        # Use the last output of the LSTM
+        # [alle batches, nur letzte (aktuellste) sequenz, alle channels]
+        lstm_out = lstm_out[:, -1, :]
+
+        # Apply FC_OUT
+        if fc_out:
+            reg = self.fc_out(lstm_out)
+        else:
+            reg = lstm_out
+
+        #end_time_fcout = time.time()
+        
+        """
+        # Measure the duration of LSTM processing
+        backbone_duration = start_time_lstm - start_time_backbone
+        print(f"Backbone processing time: {backbone_duration:.6f} seconds")
+        lstm_duration = end_time_lstm - start_time_lstm
+        print(f"LSTM processing time: {lstm_duration:.6f} seconds")
+        fcout_duration = end_time_fcout - end_time_lstm
+        print(f"fcout processing time: {fcout_duration:.6f} seconds")
+        overall_duration = end_time_fcout - start_time_backbone
+        print(f"overall processing time: {overall_duration:.6f} seconds")
+        print("---")
+        """
+        #print("after fc_out output dimensions: ", reg.shape)
+        #print("---")
+        
+        return reg
 
 class RegressionNetCNN_LSTM_HEAD(nn.Module):
     def __init__(
@@ -953,8 +1102,11 @@ class RegressionNetCNN_FC_FCOUT_V2(nn.Module):
             )
         
         self.fc_out = nn.Sequential(
+            nn.Linear(cnn_output_size*sliding_window_size, cnn_output_size*sliding_window_size), # 5. Linear Layer for learning temporal data -> cnn_output_size*10, weil used_images: 10
+            #nn.BatchNorm1d(fc_hidden_size),
             nn.ReLU(inplace=True),
             nn.Linear(cnn_output_size*sliding_window_size, cnn_output_size*sliding_window_size/2), # 5. Linear Layer for learning temporal data -> cnn_output_size*10, weil used_images: 10
+            #nn.BatchNorm1d(fc_hidden_size),
             nn.ReLU(inplace=True),
             nn.Linear(cnn_output_size*sliding_window_size/2, anchors * 2 + 1), # 5. Linear Layer for learning temporal data -> cnn_output_size*10, weil used_images: 10
         )
