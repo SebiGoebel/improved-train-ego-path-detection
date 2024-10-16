@@ -20,7 +20,7 @@ def plot_iou(iou_parts, sequence_num, mean_per_seq):
     plt.show()
 
 # datei einlesen
-with open("calculateIoU_singleFrame_video_ious_kind-donkey-84_newDataset_29_frames_gelöscht.txt", "r") as file:
+with open("calculateIoU_singleFrame_video_ious_kind-donkey-84_newDataset_ganzesDataset_29_frames_gelöscht.txt", "r") as file:
     ious = [float(line.strip()) for line in file.readlines()]
 
 # IoU

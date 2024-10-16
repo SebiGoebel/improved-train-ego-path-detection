@@ -5,9 +5,9 @@
 # %%
 
 # Simulate command-line arguments
-import sys
+#import sys
 #sys.argv = ['ipykernel_launcher.py', 'quiet-field-354', 'data/temporalDataset_video.mp4', '--end',  '120', '--show-crop', '--device', 'cuda:1'] # zum testen nur 120 sekunden
-sys.argv = ['ipykernel_launcher.py', 'quiet-field-354', 'data/temporalDataset_video.mp4', '--show-crop', '--device', 'cuda:1']
+#sys.argv = ['ipykernel_launcher.py', 'quiet-field-354', 'data/temporalDataset_video.mp4', '--show-crop', '--device', 'cuda:1']
 # python detect_temporal_IoU.py quiet-field-354 data/temporalDataset_video.mp4 --output data/temporalDataset_video_test.mp4 --end 120 --show-crop --device cuda:0
 
 import argparse
