@@ -45,7 +45,7 @@ import sys
 freeze_backbone = True
 freeze_conv = True
 # pool layer has no trainable parameters
-freeze_pred_head = True # nur bei RegNetCNN_LSTM -> False
+freeze_pred_head = False # nur bei RegNetCNN_LSTM -> False
 
 # ----- FUNCTION: copy layers -----
 
@@ -398,7 +398,7 @@ def main(args):
     # ---------------------------------------------------- building RegressionNetCNN_FC_LSTM model ----------------------------------------------------
 
     if method == "regression":
-        model = RegressionNetCNN_FC_FCOUT( # RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM
+        model = RegressionNetCNN_LSTM( # RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM
             backbone=config["backbone"],
             input_shape=tuple(config["input_shape"]),
             anchors=config["anchors"],
@@ -439,14 +439,13 @@ def main(args):
         pool_layer_name_target='pool',
         fc_layer_name_source='fc',
         fc_layer_name_target='fc',
-        copy_fc = True,
+        copy_fc = False,
     )
 
     #print(detector.model) # pretrained model with trained backbone
     #print(model)          # RegressionNetCNN_FC_LSTM model
 
     """
-    
     # checking difference in layers after copying
     counter_layers = 0
     counter_no_difference_in_layers = 0
