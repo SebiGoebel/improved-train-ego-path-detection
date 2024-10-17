@@ -1271,3 +1271,7 @@ class RegressionNetCNN_FLAT_FC(nn.Module):
         reg = self.fc(fea)
         
         return reg
+
+# model with skip connection
+# model with GRU
+# model with 3d Conv
