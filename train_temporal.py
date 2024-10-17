@@ -1,5 +1,5 @@
 """
-CUDA_VISIBLE_DEVICES=1 python train_temporal.py regression efficientnet-b3 --device cuda:0
+CUDA_VISIBLE_DEVICES=0 python train_temporal.py regression efficientnet-b3 --device cuda:0
 """
 
 # %%
@@ -45,7 +45,7 @@ import sys
 freeze_backbone = True
 freeze_conv = True
 # pool layer has no trainable parameters
-freeze_pred_head = False # nur bei RegNetCNN_LSTM -> False
+freeze_pred_head = True # nur bei RegNetCNN_LSTM -> False
 
 # ----- FUNCTION: copy layers -----
 
@@ -398,7 +398,7 @@ def main(args):
     # ---------------------------------------------------- building RegressionNetCNN_FC_LSTM model ----------------------------------------------------
 
     if method == "regression":
-        model = RegressionNetCNN_LSTM( # RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM
+        model = RegressionNetCNN_FC_LSTM( # RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM
             backbone=config["backbone"],
             input_shape=tuple(config["input_shape"]),
             anchors=config["anchors"],
@@ -422,7 +422,7 @@ def main(args):
     # 'toasty-haze-299' -> 21 anchors (=> 43)
     # 'decent-bee-298'  -> 32 anchors (=> 65)
     # 'kind-donkey-84'  -> 64 anchros (=> 129)
-    pretrained_model_name = 'kind-donkey-84'
+    pretrained_model_name = 'decent-bee-298'
     detector = Detector(
         model_path=os.path.join(base_path, "weights", pretrained_model_name),
         crop_coords=None,
@@ -439,7 +439,7 @@ def main(args):
         pool_layer_name_target='pool',
         fc_layer_name_source='fc',
         fc_layer_name_target='fc',
-        copy_fc = False,
+        copy_fc = True,
     )
 
     #print(detector.model) # pretrained model with trained backbone
@@ -524,6 +524,7 @@ def main(args):
     print("counter_layers: ", counter_layers)
     print("counter_frozen_layers: ", counter_frozen_layers)
     print("counter_trainable_layers: ", counter_trainable_layers)
+    sys.exit()
     """
 
     # ---------------------------------------------------- setting up systems for training (wandb, loss-function, optimizer [Adam], scheduler [OneCycleLR]) ----------------------------------------------------
