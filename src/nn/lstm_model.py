@@ -52,6 +52,7 @@ TRAPEZ HEAD
 4. Linear Layer: 2048, 129 (anchors * 2 + 1) [output]
 """
 
+# V0 model
 class RegressionNetCNN_LSTM_FC(nn.Module):
     def __init__(
         self,
@@ -193,6 +194,7 @@ class RegressionNetCNN_LSTM_FC(nn.Module):
         reg = self.fc(lstm_out)
         return reg
 
+# V1 model
 class RegressionNetCNN_FC_LSTM(nn.Module):
     def __init__(
         self,
@@ -378,6 +380,7 @@ class RegressionNetCNN_FC_LSTM(nn.Module):
         
         return reg
 
+# V1 model
 class RegressionNetCNN_FC_FCOUT(nn.Module):
     def __init__(
         self,
@@ -532,6 +535,7 @@ class RegressionNetCNN_FC_FCOUT(nn.Module):
         
         return reg
 
+# V1 model
 class RegressionNetCNN_LSTM(nn.Module):
     def __init__(
         self,
@@ -685,6 +689,7 @@ class RegressionNetCNN_LSTM(nn.Module):
         
         return reg
 
+# V2 model
 class RegressionNetCNN_LSTM_V2(nn.Module):
     def __init__(
         self,
@@ -843,6 +848,7 @@ class RegressionNetCNN_LSTM_V2(nn.Module):
         
         return reg
 
+# V2.2 model
 class RegressionNetCNN_LSTM_HEAD(nn.Module):
     def __init__(
         self,
@@ -1000,6 +1006,7 @@ class RegressionNetCNN_LSTM_HEAD(nn.Module):
         
         return reg
     
+# V2 model
 class RegressionNetCNN_FC_FCOUT_V2(nn.Module):
     def __init__(
         self,
@@ -1158,7 +1165,8 @@ class RegressionNetCNN_FC_FCOUT_V2(nn.Module):
         #print("---")
         
         return reg
-    
+
+# V2 model
 class RegressionNetCNN_FLAT_FC(nn.Module):
     def __init__(
         self,
