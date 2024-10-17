@@ -37,7 +37,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Simulate command-line arguments
-#import sys
+import sys
 #sys.argv = ['ipykernel_launcher.py', 'regression', 'efficientnet-b3', '--device', 'cuda:0']
 # python train_temporal.py regression efficientnet-b3 --device cuda:0
 
@@ -158,9 +158,9 @@ def main(args):
     val_sequence_indices = config["val_indices"]
     test_sequence_indices = config["test_indices"]
 
-    #print(train_sequence_indices)
-    #print(val_sequence_indices)
-    #print(test_sequence_indices)
+    print(train_sequence_indices)
+    print(val_sequence_indices)
+    print(test_sequence_indices)
 
     train_indices, val_indices, test_indices = split_dataset_by_sequence_from_lists(image_path, train_sequence_indices, val_sequence_indices, test_sequence_indices)
 
@@ -183,7 +183,7 @@ def main(args):
         number_images_used=config["number_images_used"],
         img_crop="random",
         img_aug=False,
-        img_rd_flip=True,
+        img_rd_flip=False,
         to_tensor=True,
     )
 
@@ -239,7 +239,7 @@ def main(args):
             number_images_used=config["number_images_used"],
             img_crop="random",
             img_aug=False,
-            img_rd_flip=True,
+            img_rd_flip=False,
             to_tensor=True,
         )
         if len(val_indices) > 0
@@ -469,8 +469,8 @@ def main(args):
     print("counter_no_difference_in_layers: ", counter_no_difference_in_layers)
     print("counter_difference_in_layers: ", counter_difference_in_layers)
     print("counter_non_existing_layers: ", counter_non_existing_layers)
+    sys.exit()
     
-
     # calculating difference in layers after copying
     counter_difference_in_layers = 0
     counter_non_existing_layers = 0
@@ -526,7 +526,7 @@ def main(args):
     print("counter_frozen_layers: ", counter_frozen_layers)
     print("counter_trainable_layers: ", counter_trainable_layers)
     """
-    
+
     # ---------------------------------------------------- setting up systems for training (wandb, loss-function, optimizer [Adam], scheduler [OneCycleLR]) ----------------------------------------------------
 
     wandb.init(
@@ -605,8 +605,8 @@ def main(args):
             method="segmentation",
             number_images_used=config["number_images_used"],
             img_crop="random",          # tuple (eval crops) or str ("random" -> random crop) or None (whole image)
-            img_aug=False,          # alle data augmentations auf False gesetzt --> kein ColorJitter
-            img_rd_flip=True,  	# alle data augmentations auf False gesetzt --> keine random Flips
+            img_aug=False,              # alle data augmentations auf False gesetzt --> kein ColorJitter
+            img_rd_flip=False,          # alle data augmentations auf False gesetzt --> keine random Flips
         )
 
         print("lenght of test_dataset: ", len(test_dataset))
