@@ -44,7 +44,7 @@ from src.utils.evaluate import IoUEvaluator
 
 torch.use_deterministic_algorithms(True)
 
-lösche_ersten_warmup_indices = True
+lösche_ersten_warmup_indices = False
 
 def lösche_warmup_indices(liste, löschen=9, schritt=76):
     """
@@ -89,16 +89,28 @@ def main(args):
     # train_prop: 30  # number of the dataset to use for training
     # val_prop: 4  # number of the dataset to use for validation
     # test_prop: 4  # number of the dataset to use for testing
-    images_path = "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt/images"  # path to the images directory
-    annotations_path = "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt/labels/temporalLabels.json"  # path to the annotations file
+    
+    # paths for temporal dataset
+    #images_path = "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt/images"  # path to the images directory
+    #annotations_path = "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt/labels/temporalLabels.json"  # path to the annotations file
+
+    # paths for temporal flipped dataset
+    images_path = "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt_flipped/images" # path to the images directory
+    annotations_path = "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt_flipped/labels/combined_temporalLabels.json" # path to the annotations file
+
 
     # Splitting temporal dataset
     set_seeds(config["seed"])  # set random state
 
     # sequence-lists:
-    train_sequence_indices = [0, 1, 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 27, 29, 30, 31, 33, 34, 36, 37]
-    val_sequence_indices = [19, 25, 26, 32]
-    test_sequence_indices = [35, 3, 24, 28]
+    #train_sequence_indices = [0, 1, 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 27, 29, 30, 31, 33, 34, 36, 37]
+    #val_sequence_indices = [19, 25, 26, 32]
+    #test_sequence_indices = [35, 3, 24, 28]
+
+    # sequence-lists flipped dataset:
+    train_sequence_indices = [0, 1, 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 27, 29, 30, 31, 33, 34, 36, 37, 38, 40, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 59, 60, 61, 62, 63, 64, 66, 67, 68, 72, 74]
+    val_sequence_indices = [19, 25, 26, 32, 65, 70, 71, 75]
+    test_sequence_indices = [3, 24, 28, 35, 39, 41, 69, 73]
 
     # whole dataset in testset
     #test_sequence_indices = train_sequence_indices + val_sequence_indices + test_sequence_indices
@@ -119,6 +131,7 @@ def main(args):
         test_indices = lösche_warmup_indices(test_indices)
     
     print(test_indices)
+    print("length: ", len(test_indices))
     
     if len(test_indices) > 0:
         logger.info("\nEvaluating single-frame-based model on temporal test dataset...")
@@ -130,7 +143,7 @@ def main(args):
             method="segmentation",
             img_crop="random",
             img_aug=False,
-            img_rd_flip=True,
+            img_rd_flip=False,
         )
         iou_evaluator = IoUEvaluator(
             dataset=test_dataset,

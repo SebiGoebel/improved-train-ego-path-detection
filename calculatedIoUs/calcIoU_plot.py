@@ -2,7 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-lösche_ersten_warmup_indices = 29
+lösche_ersten_warmup_indices = 0
 
 def split_into_parts(ious, part_size=76):
     parts = [ious[i:i + part_size] for i in range(0, len(ious), part_size)]
@@ -20,7 +20,7 @@ def plot_iou(iou_parts, sequence_num, mean_per_seq):
     plt.show()
 
 # datei einlesen
-with open("calculateIoU_singleFrame_video_ious_kind-donkey-84_newDataset_ganzesDataset_29_frames_gelöscht.txt", "r") as file:
+with open("calculateIoU_singleFrame_average_ious_kind-donkey-84_flippedDataset_0_frames_gelöscht.txt", "r") as file:
     ious = [float(line.strip()) for line in file.readlines()]
 
 # IoU

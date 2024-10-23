@@ -39,7 +39,7 @@ from src.nn.loss import (
     CrossEntropyLoss,
     TrainEgoPathRegressionLoss,
 )
-from src.utils.common import set_seeds, set_worker_seeds, simple_logger, split_dataset_by_sequence
+from src.utils.common import set_seeds, set_worker_seeds, simple_logger, split_dataset_by_sequence, split_dataset_by_sequence_from_lists
 from src.utils.dataset_temporal import TemporalPathsDataset
 from src.utils.evaluate_temporal import IoUEvaluatorTemporal
 
@@ -78,12 +78,26 @@ def main(args):
     # Splitting temporal dataset
     set_seeds(config["seed"])  # set random state
     image_path = config['images_path']
-    proportions = (config["train_prop"], config["val_prop"], config["test_prop"])
-    train_indices, val_indices, test_indices = split_dataset_by_sequence(image_path, proportions)
+    #proportions = (config["train_prop"], config["val_prop"], config["test_prop"])
+    #train_indices, val_indices, test_indices = split_dataset_by_sequence(image_path, proportions)
+    train_sequence_indices = config["train_indices"]
+    val_sequence_indices = config["val_indices"]
+    test_sequence_indices = config["test_indices"]
+
+    print(train_sequence_indices)
+    print(val_sequence_indices)
+    print(test_sequence_indices)
+
+    train_indices, val_indices, test_indices = split_dataset_by_sequence_from_lists(image_path, train_sequence_indices, val_sequence_indices, test_sequence_indices)
+
+    #print("train_indices:")
+    #print(train_indices)
+    #print("val_indices:")
+    #print(val_indices)
     #print("test_indices:")
     #print(test_indices)
-    #print("first test index: ", test_indices[0])
-    #print("last test index: ", test_indices[-1])
+    #print("first train index: ", train_indices[0])
+    #print("last train index: ", train_indices[-1])
     set_seeds(config["seed"])  # reset random state
 
     if len(test_indices) > 0:

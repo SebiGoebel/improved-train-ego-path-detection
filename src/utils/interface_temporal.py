@@ -80,7 +80,7 @@ class DetectorTemporal:
             print("ClassificationNet is not supported !!!")
             raise ValueError
         elif self.config["method"] == "regression":
-            model = RegressionNetCNN_FC_LSTM( # RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM, RegressionNetCNN_FC_FCOUT,
+            model = RegressionNetCNN_FC_FCOUT( # RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM, RegressionNetCNN_FC_FCOUT,
                 backbone=self.config["backbone"],
                 input_shape=tuple(self.config["input_shape"]),
                 anchors=self.config["anchors"],

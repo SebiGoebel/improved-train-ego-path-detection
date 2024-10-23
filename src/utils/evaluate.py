@@ -90,7 +90,7 @@ class IoUEvaluator:
             for i in range(len(self.dataset)):
                 img, target = self.dataset[i]
                 for i in range(450 if self.crop == "auto" else 1): # when autocroppper is selected for evaluation then do 50 iterations  to get a good crop
-                    print(i)
+                    #print(i)
                     pred = self.detector.detect(img)
                 if self.detector.config["method"] in ["classification", "regression"]:
                     pred = rails_to_mask(pred, img.size)
