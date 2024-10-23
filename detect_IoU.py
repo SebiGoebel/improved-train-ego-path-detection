@@ -1,5 +1,5 @@
 """
-python detect_IoU.py kind-donkey-84 data/temporalDataset_video.mp4 --show-crop --device cuda:1
+python detect_IoU.py kind-donkey-84 data/temporalDataset_video.mp4 --show-crop --device cuda:0
 """
 # %%
 
@@ -254,7 +254,7 @@ def main(args):
         # rausgenommen: 10
 
         # whole dataset in testset
-        test_sequence_indices = train_sequence_indices + val_sequence_indices + test_sequence_indices
+        #test_sequence_indices = train_sequence_indices + val_sequence_indices + test_sequence_indices
 
         print(train_sequence_indices)
         print(val_sequence_indices)
