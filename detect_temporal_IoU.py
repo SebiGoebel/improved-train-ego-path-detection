@@ -1,5 +1,8 @@
 """
+TEST:
     python detect_temporal_IoU.py quiet-field-354 data/temporalDataset_video.mp4 --output data/temporalDataset_video_test.mp4 --end 120 --show-crop --device cuda:0
+CALC IoU:
+    python detect_temporal_IoU.py stellar-plant-360 data/temporalDataset_video.mp4 --show-crop --device cuda:0
 """
 
 # %%
@@ -248,8 +251,13 @@ def main(args):
 
         # Splitting temporal dataset
         set_seeds(config["seed"])  # set random state
-        image_path = config['images_path']
-        annotations_path = config['annotations_path']
+        #image_path = config['images_path']
+        #annotations_path = config['annotations_path']
+
+        # um immer für das video den temporal dataset zu nehmen und nicht das flipped dataset
+        image_path = "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt/images"  # path to the images directory
+        annotations_path = "/srv/cdl-eml/datasets/temporalSwitchDataset_TEPForamt/labels/temporalLabels.json"  # path to the annotations file
+
         #proportions = (config["train_prop"], config["val_prop"], config["test_prop"])
         #print(proportions)
         #train_indices, val_indices, test_indices = split_dataset_by_sequence(image_path, proportions)
@@ -279,8 +287,8 @@ def main(args):
             annotations = json.load(json_file)
         imgs = [sorted(annotations.keys())[i] for i in test_indices]
 
-        #print(imgs)
-        #print("length of imgs: ", len(imgs))
+        print(imgs)
+        print("length of imgs: ", len(imgs))
 
         frame_list = extract_frame_indices(imgs)
         print(frame_list)
@@ -381,7 +389,7 @@ def main(args):
             ious = np.array(ious) # convert to np array
             
             print("writing average IoUs to txt file ...")
-            with open('calculateIoU_temporal_video_ious_fiery-lion-355_newDataset_0_frames_gelöscht.txt', 'w') as file:
+            with open('calculateIoU_temporal_video_ious_stellar-plant-360_newDataset_0_frames_gelöscht.txt', 'w') as file:
                 for item in ious:
                     file.write(f"{item}\n")  # Jeden Wert in einer neuen Zeile schreiben
 
