@@ -1441,6 +1441,6 @@ class RegressionNetCNN_FLAT_FC(nn.Module):
         return reg
 
 # model with skip connection
-# model with GRU
+# model with GRU - am ende bestes model mit GRU auch probieren
 
 # model with 3d Conv - nicht mehr masterarbeit
