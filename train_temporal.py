@@ -20,7 +20,7 @@ from src.nn.loss import (
     CrossEntropyLoss,
     TrainEgoPathRegressionLoss,
 )
-from src.nn.lstm_model import RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_LSTM, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM, RegressionNetCNN_LSTM_V2, RegressionNetCNN_LSTM_HEAD_V2, RegressionNetCNN_FLAT_FC
+from src.nn.lstm_model import RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_LSTM, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM, RegressionNetCNN_LSTM_V2, RegressionNetCNN_LSTM_HEAD_V2, RegressionNetCNN_FLAT_FC, RegressionNetCNN_FC_FCOUT_V2
 from src.utils.common import set_seeds, set_worker_seeds, simple_logger, split_dataset_by_sequence, split_dataset_by_sequence_from_lists
 from src.utils.dataset_temporal import TemporalPathsDataset
 from src.utils.sampler import TemporalSamplerIteratingSequenceSingleUsedImages, TemporalSamplerIteratingSequence, TemporalSamplerSingleSequence, TemporalSampler
@@ -45,7 +45,7 @@ import sys
 freeze_backbone = True
 freeze_conv = True
 # pool layer has no trainable parameters
-freeze_pred_head = False # nur bei RegNetCNN_LSTM -> False
+freeze_pred_head = True # nur bei RegNetCNN_LSTM -> False
 
 # ----- FUNCTION: copy layers -----
 
@@ -398,7 +398,7 @@ def main(args):
     # ---------------------------------------------------- building RegressionNetCNN_FC_LSTM model ----------------------------------------------------
 
     if method == "regression":
-        model = RegressionNetCNN_FLAT_FC( # RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM
+        model = RegressionNetCNN_FC_FCOUT_V2( # RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM
             backbone=config["backbone"],
             input_shape=tuple(config["input_shape"]),
             anchors=config["anchors"],
@@ -439,12 +439,12 @@ def main(args):
         pool_layer_name_target='pool',
         fc_layer_name_source='fc',
         fc_layer_name_target='fc',
-        copy_fc = False,
+        copy_fc = True,
     )
 
     #print(detector.model) # pretrained model with trained backbone
     #print(model)          # RegressionNetCNN_FC_LSTM model
-
+    
     """
     # checking difference in layers after copying
     counter_layers = 0
@@ -469,7 +469,7 @@ def main(args):
     print("counter_difference_in_layers: ", counter_difference_in_layers)
     print("counter_non_existing_layers: ", counter_non_existing_layers)
     sys.exit()
-        
+    
     # calculating difference in layers after copying
     counter_difference_in_layers = 0
     counter_non_existing_layers = 0

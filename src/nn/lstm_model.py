@@ -1036,7 +1036,7 @@ class RegressionNetCNN_FC_FCOUT_V2(nn.Module):
             fc_hidden_size (int): Number of units in the hidden layer of the fully connected part.
             pretrained (bool, optional): Whether to use pretrained weights for the backbone. Defaults to False.
         """
-        super(RegressionNetCNN_FC_FCOUT, self).__init__()
+        super(RegressionNetCNN_FC_FCOUT_V2, self).__init__()
         if backbone.startswith("efficientnet"):
             self.backbone = EfficientNetBackbone(version=backbone[13:], pretrained=pretrained)
         elif backbone.startswith("resnet"):
@@ -1118,13 +1118,13 @@ class RegressionNetCNN_FC_FCOUT_V2(nn.Module):
             )
         
         self.fc_out = nn.Sequential(
-            nn.Linear(cnn_output_size*sliding_window_size, cnn_output_size*sliding_window_size), # 5. Linear Layer for learning temporal data -> cnn_output_size*10, weil used_images: 10
+            nn.Linear(cnn_output_size*sliding_window_size, int(cnn_output_size*sliding_window_size)), # 5. Linear Layer for learning temporal data -> cnn_output_size*10, weil used_images: 10
             #nn.BatchNorm1d(fc_hidden_size),
             nn.ReLU(inplace=True),
-            nn.Linear(cnn_output_size*sliding_window_size, cnn_output_size*sliding_window_size/2), # 5. Linear Layer for learning temporal data -> cnn_output_size*10, weil used_images: 10
+            nn.Linear(int(cnn_output_size*sliding_window_size), int(cnn_output_size*sliding_window_size/2)), # 5. Linear Layer for learning temporal data -> cnn_output_size*10, weil used_images: 10
             #nn.BatchNorm1d(fc_hidden_size),
             nn.ReLU(inplace=True),
-            nn.Linear(cnn_output_size*sliding_window_size/2, anchors * 2 + 1), # 5. Linear Layer for learning temporal data -> cnn_output_size*10, weil used_images: 10
+            nn.Linear(int(cnn_output_size*sliding_window_size/2), anchors * 2 + 1), # 5. Linear Layer for learning temporal data -> cnn_output_size*10, weil used_images: 10
         )
 
         #self.training = True
