@@ -1015,7 +1015,7 @@ class RegressionNetCNN_LSTM_HEAD_V2(nn.Module):
         
         return reg
     
-# V2 model - noch nicht trainiert
+# V2 model
 class RegressionNetCNN_FC_FCOUT_V2(nn.Module):
     def __init__(
         self,
@@ -1281,6 +1281,7 @@ class RegressionNetCNN_FLAT_FC(nn.Module):
         
         return reg
 
+# V3 models:
 # model with skip connection
 # model with GRU - am ende bestes model mit GRU auch probieren
 
