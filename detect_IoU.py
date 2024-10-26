@@ -80,6 +80,25 @@ def extract_frame_indices(image_names):
     
     return frame_indices
 
+def get_sequence_starts(indices, warmup):
+    sequence_starts = []
+    
+    if indices:
+        sequence_starts.append(indices[0])
+    
+    # find the first indizes of the sequences
+    for i in range(1, len(indices)):
+        if indices[i] != indices[i - 1] + 1:
+            sequence_starts.append(indices[i])
+    
+    for i in range(len(sequence_starts)):
+        if sequence_starts[i] - warmup <= 0:
+            sequence_starts[i] = 0
+        else:
+            sequence_starts[i] = sequence_starts[i] - warmup
+
+    return sequence_starts
+
 def generate_rails_mask(shape, annotation):
     rails_mask = Image.new("L", shape, 0)
     draw = ImageDraw.Draw(rails_mask)
@@ -281,7 +300,10 @@ def main(args):
         #print("length of imgs: ", len(imgs))
 
         frame_list = extract_frame_indices(imgs)
-        #print(frame_list)
+        print(frame_list)
+
+        start_indices = get_sequence_starts(frame_list, 500)
+        print(start_indices)
 
         # Leere Liste für die Tupel
         matching_tuples = []
@@ -316,30 +338,34 @@ def main(args):
         ious = []
 
         while current_frame < max_frames:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            frame = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            crop = detector.get_crop_coords() if args.show_crop else None
-            res = detector.detect(frame) # prediction
-            if current_frame in frame_list:
-                vis = draw_egopath(frame, res, opacity=0.5, color=(255, 0, 0), crop_coords=crop) # rot
-                pred = rails_to_mask(res, frame.size)                                  # converts prediction to a binary mask (pred)
-                img_name = frame_dict.get(current_frame, "Frame-Index nicht gefunden") # gets right annotation-key
-                annotation = annotations[img_name]                                     # gets annotation from json
-                vis = drawAnnotation(vis, annotation)                                  # draws annotations for visual comparison
-                rails_mask = generate_rails_mask(frame.size, annotation)               # converts GT to a binary mask --> only rails
-                target = generate_target_segmentation(rails_mask)                      # converts GT from only rails to a binary mask --> whole track-bed
-                ious.append(compute_iou(pred, target))                                 # computes IoU - between 2 binary masks (prediction and GT are rails and track-bed area)
-            else:
-                vis = draw_egopath(frame, res, crop_coords=crop) # grün
-            vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
-            out.write(vis)
             current_frame += 1
-            progress_bar.info(
-                f"Processed {current_frame:0{len(str(max_frames))}}/{max_frames} frames"
-                + f" ({current_frame/max_frames*100:.2f}%)"
-            )
+            if current_frame in start_indices:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame)
+                for i in range(600):
+                    ret, frame = cap.read()
+                    if not ret:
+                        break
+                    frame = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                    crop = detector.get_crop_coords() if args.show_crop else None
+                    res = detector.detect(frame) # prediction
+                    if current_frame in frame_list:
+                        vis = draw_egopath(frame, res, opacity=0.5, color=(255, 0, 0), crop_coords=crop) # rot
+                        pred = rails_to_mask(res, frame.size)                                  # converts prediction to a binary mask (pred)
+                        img_name = frame_dict.get(current_frame, "Frame-Index nicht gefunden") # gets right annotation-key
+                        annotation = annotations[img_name]                                     # gets annotation from json
+                        vis = drawAnnotation(vis, annotation)                                  # draws annotations for visual comparison
+                        rails_mask = generate_rails_mask(frame.size, annotation)               # converts GT to a binary mask --> only rails
+                        target = generate_target_segmentation(rails_mask)                      # converts GT from only rails to a binary mask --> whole track-bed
+                        ious.append(compute_iou(pred, target))                                 # computes IoU - between 2 binary masks (prediction and GT are rails and track-bed area)
+                    else:
+                        vis = draw_egopath(frame, res, crop_coords=crop) # grün
+                    vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
+                    out.write(vis)
+                    current_frame += 1
+                    progress_bar.info(
+                        f"Processed {current_frame:0{len(str(max_frames))}}/{max_frames} frames"
+                        + f" ({current_frame/max_frames*100:.2f}%)"
+                    )
         cap.release()
         out.release()
         logger.info("")
