@@ -747,11 +747,11 @@ class RegressionNetCNN_LSTM_V2(nn.Module):
 
         # Define fully connected layers
         self.fc = nn.Sequential(
-            nn.Linear(self.num_channels, self.num_channels/2), # 1. Linear Layer (2048, 2048/2 = 1024)
+            nn.Linear(self.num_channels, int(self.num_channels/2)), # 1. Linear Layer (2048, 2048/2 = 1024)
             nn.ReLU(inplace=True),
-            nn.Linear(self.num_channels/2, self.num_channels/4), # 1. Linear Layer (2048/2 = 1024, 2048/4 = 512)
+            nn.Linear(int(self.num_channels/2), int(self.num_channels/4)), # 1. Linear Layer (2048/2 = 1024, 2048/4 = 512)
             nn.ReLU(inplace=True),
-            nn.Linear(self.num_channels/4, CNN_LSTM_lstm_input_size), # 1. Linear Layer (512, 65)
+            nn.Linear(int(self.num_channels/4), CNN_LSTM_lstm_input_size), # 1. Linear Layer (512, 65)
             nn.ReLU(inplace=True),
         )
         
@@ -873,7 +873,7 @@ class RegressionNetCNN_LSTM_HEAD_V2(nn.Module):
             fc_hidden_size (int): Number of units in the hidden layer of the fully connected part.
             pretrained (bool, optional): Whether to use pretrained weights for the backbone. Defaults to False.
         """
-        super(RegressionNetCNN_LSTM_V2, self).__init__()
+        super(RegressionNetCNN_LSTM_HEAD_V2, self).__init__()
         if backbone.startswith("efficientnet"):
             self.backbone = EfficientNetBackbone(version=backbone[13:], pretrained=pretrained)
         elif backbone.startswith("resnet"):
@@ -910,9 +910,9 @@ class RegressionNetCNN_LSTM_HEAD_V2(nn.Module):
 
         # Define fully connected layers
         self.fc = nn.Sequential(
-            nn.Linear(self.num_channels, (self.num_channels/2)), # 1. Linear Layer (2048, 1024)
+            nn.Linear(self.num_channels, int(self.num_channels/2)), # 1. Linear Layer (2048, 1024)
             nn.ReLU(inplace=True),
-            nn.Linear((self.num_channels/2), CNN_LSTM_lstm_input_size), # 1. Linear Layer (2048, 65)
+            nn.Linear(int(self.num_channels/2), CNN_LSTM_lstm_input_size), # 1. Linear Layer (1024, 65)
             nn.ReLU(inplace=True),
         )
         
@@ -920,7 +920,6 @@ class RegressionNetCNN_LSTM_HEAD_V2(nn.Module):
         self.lstm = nn.LSTM(input_size=CNN_LSTM_lstm_input_size,  # input size = 65
                             hidden_size=CNN_LSTM_lstm_hidden_size, # hidden size = 65
                             num_layers=CNN_LSTM_num_lstm_layers, batch_first=True) # layers = 2
-        
         
         self.scale = nn.Parameter(1/2*torch.ones(CNN_LSTM_lstm_input_size),requires_grad=True)
         self.offset = nn.Parameter(0.5*torch.ones(CNN_LSTM_lstm_input_size),requires_grad=True)
