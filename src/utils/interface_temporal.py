@@ -9,7 +9,7 @@ from torchvision.transforms import v2 as transforms
 
 import time
 
-from ..nn.lstm_model import RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM_V2, RegressionNetCNN_LSTM_HEAD_V2
+from ..nn.lstm_model import RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM_V2, RegressionNetCNN_LSTM_HEAD_V2, RegressionNetCNN_FLAT_FC
 from .autocrop import Autocropper
 from .common import to_scaled_tensor
 from .postprocessing import (
@@ -80,7 +80,7 @@ class DetectorTemporal:
             print("ClassificationNet is not supported !!!")
             raise ValueError
         elif self.config["method"] == "regression":
-            model = RegressionNetCNN_LSTM_HEAD_V2( # RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM, RegressionNetCNN_FC_FCOUT,
+            model = RegressionNetCNN_FLAT_FC( # RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM, RegressionNetCNN_FC_FCOUT,
                 backbone=self.config["backbone"],
                 input_shape=tuple(self.config["input_shape"]),
                 anchors=self.config["anchors"],
