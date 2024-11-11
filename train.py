@@ -85,7 +85,9 @@ def main(args):
         indices=train_indices,
         config=config,
         method=method,
+        img_crop="random",
         img_aug=True,
+        img_rd_flip=True,
         to_tensor=True,
     )
     val_dataset = (
@@ -95,7 +97,9 @@ def main(args):
             indices=val_indices,
             config=config,
             method=method,
+            img_crop="random",
             img_aug=True,
+            img_rd_flip=True,
             to_tensor=True,
         )
         if len(val_indices) > 0
@@ -217,12 +221,17 @@ def main(args):
             indices=test_indices,
             config=config,
             method="segmentation",
+            img_crop="random",
+            img_aug=False,
+            img_rd_flip=False,
+            to_tensor=False,
         )
         iou_evaluator = IoUEvaluator(
             dataset=test_dataset,
             model_path=save_path,
             runtime="pytorch",
             device=device,
+            crop=None,
         )
         test_iou = iou_evaluator.evaluate()
         logger.info(f"Test IoU: {test_iou:.5f}")

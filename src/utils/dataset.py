@@ -33,7 +33,7 @@ class PathsDataset(Dataset):
             config (dict): Data generation configuration.
             method (str): Method to use for ground truth generation ("classification", "regression" or "segmentation").
             img_crop (tuple or str or None): Coordinates to use for cropping as dataaugmentaiton on the input image:
-                - If str, should be "random" to use random cropping (as dataaugmentation).
+                - If str, should be "random" to use random cropping (as data augmentation).
                 - If tuple, should be the inclusive absolute coordinates (diff_crop_left, diff_crop_right, diff_crop_top) of the fixed region.
                 - If None, no cropping is performed. Whole image is used. (-> for evaluating with autocrop later on)
             img_aug (bool, optional): Whether to use stochastic image adjustment (brightness, contrast, saturation and hue). Defaults to False.
