@@ -22,7 +22,22 @@ temporalDataset_video_out.mp4
 Video_1.mp4
 Video_2.mp4
 Video_3.mp4
+Video_1_out.mp4
+Video_2_out.mp4
+Video_3_out.mp4
 
 # alle test files (beginnen alle mit 'test_')
 test_* 
 
+# videos von allen finalen auswertungen
+final_temporal_auswertungen/kind-waterfall-363.mp4
+final_temporal_auswertungen/autumn-valley-364.mp4
+final_temporal_auswertungen/dandy-totem-361.mp4
+final_temporal_auswertungen/silvery-field-386.mp4
+final_temporal_auswertungen/fanciful-dream-388.mp4
+final_temporal_auswertungen/morning-dawn-358.mp4
+final_temporal_auswertungen/neat-water-359.mp4
+final_temporal_auswertungen/twilight-monkey-362.mp4
+final_temporal_auswertungen/trim-pyramid-387.mp4
+final_temporal_auswertungen/stellar-plant-360.mp4
+final_temporal_auswertungen/single-frame-based.mp4

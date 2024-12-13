@@ -451,8 +451,7 @@ class TemporalPathsDataset(Dataset):
         weights = []
         # original TEP: Perspective weight limit: 19.00
         # temporal_dataset: Perspective weight limit: 19.64
-        #limit = 18.70
-        
+        #limit = 19.64
         for i in range(len(self)-self.number_images_used+1):
             print("i: ", i)
             #print("self[i]: ", self[i])
@@ -485,6 +484,5 @@ class TemporalPathsDataset(Dataset):
             #print("weights: ", weights)
             #print("weights.len: ", len(weights))
         limit = np.percentile(sorted(weights), percentile)
-        
         logger.info(f"Perspective weight limit: {limit:.2f}")
         return limit

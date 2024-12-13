@@ -8,10 +8,10 @@ CALC IoU:
 # %%
 
 # Simulate command-line arguments
-#import sys
+import sys
 #sys.argv = ['ipykernel_launcher.py', 'quiet-field-354', 'data/temporalDataset_video.mp4', '--end',  '120', '--show-crop', '--device', 'cuda:1'] # zum testen nur 120 sekunden
-#sys.argv = ['ipykernel_launcher.py', 'quiet-field-354', 'data/temporalDataset_video.mp4', '--show-crop', '--device', 'cuda:1']
-# python detect_temporal_IoU.py quiet-field-354 data/temporalDataset_video.mp4 --output data/temporalDataset_video_test.mp4 --end 120 --show-crop --device cuda:0
+#sys.argv = ['ipykernel_launcher.py', 'twilight-monkey-362', 'data/temporalDataset_video.mp4', '--output', 'final_temporal_auswertungen/', '--show-crop', '--device', 'cuda:1']
+# python detect_temporal_IoU.py twilight-monkey-362 data/temporalDataset_video.mp4 --output final_temporal_auswertungen --show-crop --device cuda:0
 
 import argparse
 import os
@@ -202,7 +202,8 @@ def main(args):
     )
 
     extension = os.path.splitext(args.input)[1]
-    outname = f"{os.path.splitext(os.path.basename(args.input))[0]}_out{extension}"
+    #outname = f"{os.path.splitext(os.path.basename(args.input))[0]}_out{extension}"
+    outname = f"{args.model}{extension}"
     if args.output is not None:
         os.makedirs(args.output, exist_ok=True)
         output_path = os.path.join(args.output, outname)
@@ -353,7 +354,7 @@ def main(args):
                     crop = detector.get_crop_coords() if args.show_crop else None
                     res = detector.detect(frames) # prediction auf letztes frame
                     if current_frame in frame_list:
-                        vis = draw_egopath(frames[-1], res, opacity=0.5, color=(255, 0, 0), crop_coords=crop) # rot
+                        vis = draw_egopath(frames[-1], res, opacity=0.5, color=(0, 189, 80), crop_coords=crop) # grün
                         pred = rails_to_mask(res, frames[-1].size)                             # converts prediction to a binary mask (pred)
                         img_name = frame_dict.get(current_frame, "Frame-Index nicht gefunden") # gets right annotation-key
                         annotation = annotations[img_name]                                     # gets annotation from json
@@ -362,7 +363,7 @@ def main(args):
                         target = generate_target_segmentation(rails_mask)                      # converts GT from only rails to a binary mask --> whole track-bed
                         ious.append(compute_iou(pred, target))                                 # computes IoU - between 2 binary masks (prediction and GT are rails and track-bed area)
                     else:
-                        vis = draw_egopath(frames[-1], res, crop_coords=crop) # grün
+                        vis = draw_egopath(frames[-1], res, crop_coords=crop) # blau
                     vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
                     out.write(vis)
                     cap.set(cv2.CAP_PROP_POS_FRAMES, current_pos+1) # um auf das nächste Frame zu springen
@@ -389,7 +390,9 @@ def main(args):
             ious = np.array(ious) # convert to np array
             
             print("writing average IoUs to txt file ...")
-            with open('calculateIoU_temporal_video_ious_morning-dawn-358_newDataset_0_frames_gelöscht.txt', 'w') as file:
+            save_path=os.path.join(base_path, "final_temporal_auswertungen")
+            save_name = f"{args.model}.txt"
+            with open(os.path.join(save_path, save_name), 'w') as file:
                 for item in ious:
                     file.write(f"{item}\n")  # Jeden Wert in einer neuen Zeile schreiben
 

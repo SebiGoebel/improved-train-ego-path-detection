@@ -2,7 +2,8 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-def draw_egopath(img, egopath, opacity=0.5, color=(0, 189, 80), crop_coords=None):
+#def draw_egopath(img, egopath, opacity=0.5, color=(0, 189, 80), crop_coords=None): # grün
+def draw_egopath(img, egopath, opacity=0.5, color=(0, 191, 255), crop_coords=None): # blau
     """Overlays the train ego-path on the input image.
 
     Args:

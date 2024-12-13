@@ -11,6 +11,7 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
+import yaml
 
 from src.utils.common import simple_logger
 from src.utils.interface_temporal import DetectorTemporal
@@ -19,6 +20,13 @@ from src.utils.visualization import draw_egopath
 from thop import profile
 import torch.utils
 import torch.utils.flop_counter
+
+import onnx_tool
+import onnx
+from onnxsim import simplify
+#from onnxruntime.tools import optimizer
+
+import onnxruntime as rt
 
 sliding_window_length = 10
 
@@ -93,11 +101,14 @@ def main(args):
         device=args.device,
     )
 
+    with open(os.path.join(base_path, "weights", args.model, "config.yaml")) as f:
+        config = yaml.safe_load(f)
+
     # ------------------------------------- create dummy tensor -------------------------------------
 
     detector.model.eval()
     #summary(detector.model, (3, 512, 512))
-    dummyInputTensor = torch.empty(1, 10, 3, 512, 512, device=args.device)
+    dummyInputTensor = torch.empty(1, config["number_images_used"], 3, 512, 512, device=args.device)
 
     # ------------------------------------- create onnx file path -------------------------------------
     onnx_file_name = f"{os.path.splitext(args.model)[0]}.onnx"
@@ -117,17 +128,36 @@ def main(args):
 
     print(f"Model has been converted to ONNX and saved at {onnx_file_path}")
 
-    # Print model's state_dict
-    print("Model's state_dict:")
-    for param_tensor in detector.model.state_dict():
-        print(param_tensor, "\t", detector.model.state_dict()[param_tensor].size())
+    # ----------------------- Print model's state_dict -----------------------
+    #print("Model's state_dict:")
+    #for param_tensor in detector.model.state_dict():
+    #    print(param_tensor, "\t", detector.model.state_dict()[param_tensor].size())
+
+    # ----------------------- Simplify with tensorRT -----------------------
+    #sess_options = rt.SessionOptions()
+    #sess_options.graph_optimization_level = rt.GraphOptimizationLevel.ORT_ENABLE_BASIC # Set graph optimization level
+    #onnx_file_name_simple = f"{os.path.splitext(args.model)[0]}_simple.onnx"
+    #onnx_file_path_simple = os.path.join(base_path, "weights", args.model, onnx_file_name_simple)
+    #sess_options.optimized_model_filepath = onnx_file_path_simple
+    #session = rt.InferenceSession(onnx_file_path, sess_options)
+    #onnx_tool.model_profile(onnx_file_path_simple, None, None)
+
+    # ----------------------- Simplify with simplify() -----------------------
+    #model_onnx_for_simple = onnx.load(onnx_file_path)
+    #simplified_model, check = simplify(model_onnx_for_simple)
+    #if check:
+    #    print("Simplified and validated successfully!")
+    #    # Speichere das optimierte Modell
+    #    onnx_file_name_simple = f"{os.path.splitext(args.model)[0]}_simple.onnx"
+    #    onnx_file_path_simple = os.path.join(base_path, "weights", args.model, onnx_file_name_simple)
+    #    onnx.save(simplified_model, onnx_file_path_simple)
 
     macs, params = profile(detector.model, inputs=(dummyInputTensor,))
     print("---------------------------------------------------")
     print("MACs: ", macs)
     print("params: ", params)
     print("---------------------------------------------------")
-    flops = torch.utils.flop_counter.FlopCounterMode(detector.model, depth=1)
+    flops = torch.utils.flop_counter.FlopCounterMode(detector.model, depth=0)
     with flops:
         detector.model(dummyInputTensor).sum()
 

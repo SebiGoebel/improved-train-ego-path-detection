@@ -1,3 +1,7 @@
+"""
+python detect_temporal.py model data/Video_1.mp4 --start 20 --end 75 --show-crop --device cuda:1
+"""
+
 import argparse
 import os
 

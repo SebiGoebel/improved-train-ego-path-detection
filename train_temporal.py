@@ -20,7 +20,7 @@ from src.nn.loss import (
     CrossEntropyLoss,
     TrainEgoPathRegressionLoss,
 )
-from src.nn.lstm_model import RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_LSTM, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM, RegressionNetCNN_LSTM_V2, RegressionNetCNN_LSTM_HEAD_V2, RegressionNetCNN_FLAT_FC, RegressionNetCNN_FC_FCOUT_V2
+from src.nn.lstm_model import RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_LSTM, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM, RegressionNetCNN_LSTM_V2, RegressionNetCNN_LSTM_HEAD_V2, RegressionNetCNN_FLAT_FC, RegressionNetCNN_FC_FCOUT_V2, RegressionNetCNN_LSTM_HEAD_SKIP_cat_V3, RegressionNetCNN_LSTM_HEAD_SKIP_mul_V3, RegressionNetCNN_LSTM_HEAD_SKIP_mul_time_V3
 from src.utils.common import set_seeds, set_worker_seeds, simple_logger, split_dataset_by_sequence, split_dataset_by_sequence_from_lists
 from src.utils.dataset_temporal import TemporalPathsDataset
 from src.utils.sampler import TemporalSamplerIteratingSequenceSingleUsedImages, TemporalSamplerIteratingSequence, TemporalSamplerSingleSequence, TemporalSampler
@@ -208,7 +208,7 @@ def main(args):
     sequence_tensor = train_dataset[0][0]
     n_images = sequence_tensor.shape[0] # 10
 
-    n_cols = 8
+    n_cols = 5
     n_rows = (n_images + n_cols - 1) // n_cols
 
     # Erstelle eine Figur mit Subplots
@@ -216,7 +216,7 @@ def main(args):
 
     # Durchlaufe alle Bilder und zeige sie in den Subplots an
     for i in range(n_images):
-        print("i: ", i)
+        #print("i: ", i)
         ax = axes[i // n_cols, i % n_cols]
         img = sequence_tensor[i].permute(1, 2, 0)  # Dimensionen von (3, 512, 512) zu (512, 512, 3) umordnen
         ax.imshow(img)
@@ -398,7 +398,7 @@ def main(args):
     # ---------------------------------------------------- building RegressionNetCNN_FC_LSTM model ----------------------------------------------------
 
     if method == "regression":
-        model = RegressionNetCNN_FC_FCOUT_V2( # RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM
+        model = RegressionNetCNN_LSTM_HEAD_SKIP_mul_time_V3( # RegressionNetCNN_FC_LSTM, RegressionNetCNN_LSTM_FC, RegressionNetCNN_FC_FCOUT, RegressionNetCNN_LSTM
             backbone=config["backbone"],
             input_shape=tuple(config["input_shape"]),
             anchors=config["anchors"],

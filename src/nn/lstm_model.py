@@ -1272,7 +1272,7 @@ class RegressionNetCNN_FLAT_FC(nn.Module):
 
         # Flatten to one big vector (every frame in one big frame)
         fea = fea.view(fea.shape[0] * fea.shape[1])
-        print("tensor after view: ", fea.shape)
+        #print("tensor after view: ", fea.shape)
         fea = fea.unsqueeze(0)
         #print("tensor after unsqueeze: ", fea.shape)
         
@@ -1286,3 +1286,434 @@ class RegressionNetCNN_FLAT_FC(nn.Module):
 # model with GRU - am ende bestes model mit GRU auch probieren
 
 # model with 3d Conv - nicht mehr masterarbeit
+
+class RegressionNetCNN_LSTM_HEAD_SKIP_cat_V3(nn.Module):
+    def __init__(
+        self,
+        backbone,
+        input_shape,
+        anchors,
+        pool_channels,
+        fc_hidden_size,
+        pretrained=False,
+    ):
+        """Initializes the train ego-path detection model for the regression method.
+
+        Args:
+            backbone (str): Backbone to use in the model (e.g. "resnet18", "efficientnet-b3", etc.).
+            input_shape (tuple): Input shape (C, H, W).
+            anchors (int): Number of horizontal anchors in the input image where the path is regressed.
+            pool_channels (int): Number of output channels of the pooling layer.
+            fc_hidden_size (int): Number of units in the hidden layer of the fully connected part.
+            pretrained (bool, optional): Whether to use pretrained weights for the backbone. Defaults to False.
+        """
+        super(RegressionNetCNN_LSTM_HEAD_SKIP_cat_V3, self).__init__()
+        if backbone.startswith("efficientnet"):
+            self.backbone = EfficientNetBackbone(version=backbone[13:], pretrained=pretrained)
+        elif backbone.startswith("resnet"):
+            self.backbone = ResNetBackbone(version=backbone[6:], pretrained=pretrained)
+        elif backbone.startswith("mobilenet"):
+            self.backbone = MobileNetV3_Backbone(version=backbone[10:], pretrained=pretrained)
+        elif backbone.startswith("densenet"):
+            self.backbone = Densenet_Backbone(version=backbone[8:], pretrained=pretrained)
+        else:
+            raise NotImplementedError
+        
+        self.num_channels = pool_channels * math.ceil(input_shape[1] / self.backbone.reduction_factor) * math.ceil(input_shape[2] / self.backbone.reduction_factor) # 8*(512/32)*(512/32)=2048 // 8*16*16=2048
+
+        self.conv = nn.Conv2d(
+            in_channels=self.backbone.out_channels[-1],
+            out_channels=self.num_channels, # 2048
+            kernel_size=1,
+        )  # stride=1, padding=0
+        self.pool = nn.AdaptiveMaxPool2d((1, 1))  # Global adaptive max pooling
+
+        # Fully connected layers Backbone-LSTM
+        self.fc_in = nn.Sequential(
+            nn.Linear(self.num_channels, int(self.num_channels/2)), # 1. Linear Layer (2048, 1024)
+            nn.ReLU(inplace=True),
+            nn.Linear(int(self.num_channels/2), CNN_LSTM_lstm_input_size), # 1. Linear Layer (1024, 65)
+            nn.ReLU(inplace=True),
+        )
+
+        # Fully connected layers Backbone-LSTM_output -> tranpeze head
+        self.fc = nn.Sequential(
+            nn.Linear(self.num_channels, int(fc_hidden_size * 1.75)),           # 1. Linear Layer (2048, 2048*1.75=3584)
+            nn.ReLU(inplace=True),
+            nn.Linear(int(fc_hidden_size * 1.75), int(fc_hidden_size * 1.25)),  # 2. Linear Layer (2048*1.75, 2048*1.25)
+            nn.ReLU(inplace=True),
+            nn.Linear(int(fc_hidden_size * 1.25), fc_hidden_size),              # 3. Linear Layer (2048*1.25, 2048)
+            nn.ReLU(inplace=True),
+            nn.Linear(fc_hidden_size, CNN_LSTM_lstm_input_size),                # 4. Linear Layer (2048, 65 [output])
+        )
+        
+        # LSTM layer
+        self.lstm = nn.LSTM(input_size=CNN_LSTM_lstm_input_size,  # input size = 65
+                            hidden_size=CNN_LSTM_lstm_hidden_size, # hidden size = 65
+                            num_layers=CNN_LSTM_num_lstm_layers, batch_first=True) # layers = 2
+        
+        #self.scale = nn.Parameter(1/2*torch.ones(CNN_LSTM_lstm_input_size),requires_grad=True)
+        #self.offset = nn.Parameter(0.5*torch.ones(CNN_LSTM_lstm_input_size),requires_grad=True)
+
+        
+        self.fc_out = nn.Sequential(
+            nn.ReLU(inplace=False), # inplace = False sonst Probleme mit LSTM
+            nn.Linear(CNN_LSTM_lstm_hidden_size * 2, anchors * 2 + 1), # 2. Linear Layer after LSTM (65 * 2 [concat], 129 [output])
+            nn.ReLU(inplace=True),
+            nn.Linear(anchors * 2 + 1, anchors * 2 + 1), # 2. Linear Layer after LSTM (129, 129 [output])
+        )
+
+    def forward(self, x):
+        #start_time_backbone = time.time()
+        
+        # x must be [batch_size], seq_len, inputsize (-1) bzw. channel_size
+        shape = x.shape
+
+        if len(x.shape) == 5:
+            x = x.view(shape[0]*shape[1], *shape[2:]) # (batch_size * seq_len, C, H, W)
+        else:
+            ValueError("Input Tensor for Backbone has uncorrect dimensions !!!")
+        #self.backbone.eval() # um auch batch_norm zu freezen
+        x = self.backbone(x)[0]
+
+        # pooling layers after backbone
+        x = self.conv(x)
+        fea_back = self.pool(x).flatten(start_dim=1)
+        
+        #print("after backbone output dimensions: ", fea_back.shape) # [10, 2048]
+
+        # Fully connected layers before LSTM
+        fea = self.fc_in(fea_back)
+
+        #print("after fc output dimensions: ", fea.shape) # [10, 65]
+
+        # Reshape for LSTM (batch_size, seq_len, input_size=self.num_channels)
+        shape_fc_output = fea.shape                                 # [batch_size * seq_len, output_size (129)]
+        if len(shape) == 5:                                         # training:
+            fea = fea.view(shape[0], shape[1], shape_fc_output[1])  # batch_size = übernehmen, seq_len = übernehmen, num_channels = übernehmen von CNN
+        elif len(shape) == 4:                                       # inference:
+            fea = fea.view(1, shape[0], shape_fc_output[1])         # batch_size = 1, seq_len = übernehmen, num_channels = übernehmen von CNN
+
+        # Apply LSTM
+        lstm_out, _ = self.lstm(fea)
+
+        #lstm_out = lstm_out*self.scale.view(1,1,-1) + self.offset.view(1,1,-1)
+
+        #print("after lstm output dimensions: ", lstm_out.shape) # [1, 10, 65]
+
+        # Use the last output of the LSTM
+        # [alle batches, nur letzte (aktuellste) sequenz, alle channels]
+        lstm_out = lstm_out[:, -1, :]
+
+        #print("after lstm-last dimensions: ", lstm_out.shape) # [1, 65]
+
+        # Nimm nur die features vom letzten
+        fea_back = fea_back[-1].unsqueeze(0) # letzter und eine dimension hinzufügen für batch_size
+
+        #print("before head dimensions: ", fea_back.shape) # [1, 2048]
+
+        single_frame_pred = self.fc(fea_back) # nur den letzten für den head nehmen
+
+        #print("after head dimensions: ", single_frame_pred.shape) # [1, 65]
+
+        # Verbinden die zwei outputs miteinander
+        concat_features = torch.cat((lstm_out, single_frame_pred), dim=1)
+
+        #print("after cat dimensions: ", concat_features.shape) # [1, 130]
+
+        reg = self.fc_out(concat_features)
+
+        #print("final dimensions: ", reg.shape) # [1, 129]
+
+        return reg
+    
+
+class RegressionNetCNN_LSTM_HEAD_SKIP_mul_V3(nn.Module):
+    def __init__(
+        self,
+        backbone,
+        input_shape,
+        anchors,
+        pool_channels,
+        fc_hidden_size,
+        pretrained=False,
+    ):
+        """Initializes the train ego-path detection model for the regression method.
+
+        Args:
+            backbone (str): Backbone to use in the model (e.g. "resnet18", "efficientnet-b3", etc.).
+            input_shape (tuple): Input shape (C, H, W).
+            anchors (int): Number of horizontal anchors in the input image where the path is regressed.
+            pool_channels (int): Number of output channels of the pooling layer.
+            fc_hidden_size (int): Number of units in the hidden layer of the fully connected part.
+            pretrained (bool, optional): Whether to use pretrained weights for the backbone. Defaults to False.
+        """
+        super(RegressionNetCNN_LSTM_HEAD_SKIP_mul_V3, self).__init__()
+        if backbone.startswith("efficientnet"):
+            self.backbone = EfficientNetBackbone(version=backbone[13:], pretrained=pretrained)
+        elif backbone.startswith("resnet"):
+            self.backbone = ResNetBackbone(version=backbone[6:], pretrained=pretrained)
+        elif backbone.startswith("mobilenet"):
+            self.backbone = MobileNetV3_Backbone(version=backbone[10:], pretrained=pretrained)
+        elif backbone.startswith("densenet"):
+            self.backbone = Densenet_Backbone(version=backbone[8:], pretrained=pretrained)
+        else:
+            raise NotImplementedError
+        
+        self.num_channels = pool_channels * math.ceil(input_shape[1] / self.backbone.reduction_factor) * math.ceil(input_shape[2] / self.backbone.reduction_factor) # 8*(512/32)*(512/32)=2048 // 8*16*16=2048
+
+        self.conv = nn.Conv2d(
+            in_channels=self.backbone.out_channels[-1],
+            out_channels=self.num_channels, # 2048
+            kernel_size=1,
+        )  # stride=1, padding=0
+        self.pool = nn.AdaptiveMaxPool2d((1, 1))  # Global adaptive max pooling
+
+        # Fully connected layers Backbone-LSTM
+        self.fc_in = nn.Sequential(
+            nn.Linear(self.num_channels, int(self.num_channels/2)), # 1. Linear Layer (2048, 1024)
+            nn.ReLU(inplace=True),
+            nn.Linear(int(self.num_channels/2), CNN_LSTM_lstm_input_size), # 1. Linear Layer (1024, 65)
+            nn.ReLU(inplace=True),
+        )
+
+        # Fully connected layers Backbone-LSTM_output -> tranpeze head
+        self.fc = nn.Sequential(
+            nn.Linear(self.num_channels, int(fc_hidden_size * 1.75)),           # 1. Linear Layer (2048, 2048*1.75=3584)
+            nn.ReLU(inplace=True),
+            nn.Linear(int(fc_hidden_size * 1.75), int(fc_hidden_size * 1.25)),  # 2. Linear Layer (2048*1.75, 2048*1.25)
+            nn.ReLU(inplace=True),
+            nn.Linear(int(fc_hidden_size * 1.25), fc_hidden_size),              # 3. Linear Layer (2048*1.25, 2048)
+            nn.ReLU(inplace=True),
+            nn.Linear(fc_hidden_size, CNN_LSTM_lstm_input_size),                # 4. Linear Layer (2048, 65 [output])
+        )
+        
+        # LSTM layer
+        self.lstm = nn.LSTM(input_size=CNN_LSTM_lstm_input_size,  # input size = 65
+                            hidden_size=CNN_LSTM_lstm_hidden_size, # hidden size = 65
+                            num_layers=CNN_LSTM_num_lstm_layers, batch_first=True) # layers = 2
+        
+        self.sigmoid = nn.Sigmoid()
+        
+        #self.scale = nn.Parameter(1/2*torch.ones(CNN_LSTM_lstm_input_size),requires_grad=True)
+        #self.offset = nn.Parameter(0.5*torch.ones(CNN_LSTM_lstm_input_size),requires_grad=True)
+
+        
+        self.fc_out = nn.Sequential(
+            nn.ReLU(inplace=False), # inplace = False sonst Probleme mit LSTM
+            nn.Linear(CNN_LSTM_lstm_hidden_size, anchors * 2 + 1), # 2. Linear Layer after LSTM (65 [mul], 129 [output])
+            nn.ReLU(inplace=True),
+            nn.Linear(anchors * 2 + 1, anchors * 2 + 1), # 2. Linear Layer after LSTM (129, 129 [output])
+        )
+
+    def forward(self, x):
+        #start_time_backbone = time.time()
+        
+        # x must be [batch_size], seq_len, inputsize (-1) bzw. channel_size
+        shape = x.shape
+
+        if len(x.shape) == 5:
+            x = x.view(shape[0]*shape[1], *shape[2:]) # (batch_size * seq_len, C, H, W)
+        else:
+            ValueError("Input Tensor for Backbone has uncorrect dimensions !!!")
+        #self.backbone.eval() # um auch batch_norm zu freezen
+        x = self.backbone(x)[0]
+
+        # pooling layers after backbone
+        x = self.conv(x)
+        fea_back = self.pool(x).flatten(start_dim=1)
+        
+        #print("after backbone output dimensions: ", fea_back.shape) # [10, 2048]
+
+        # Fully connected layers before LSTM
+        fea = self.fc_in(fea_back)
+
+        #print("after fc output dimensions: ", fea.shape) # [10, 65]
+
+        # Reshape for LSTM (batch_size, seq_len, input_size=self.num_channels)
+        shape_fc_output = fea.shape                                 # [batch_size * seq_len, output_size (65)]
+        if len(shape) == 5:                                         # training:
+            fea = fea.view(shape[0], shape[1], shape_fc_output[1])  # batch_size = übernehmen, seq_len = übernehmen, num_channels = übernehmen von CNN
+        elif len(shape) == 4:                                       # inference:
+            fea = fea.view(1, shape[0], shape_fc_output[1])         # batch_size = 1, seq_len = übernehmen, num_channels = übernehmen von CNN
+
+        # Apply LSTM
+        lstm_out, _ = self.lstm(fea)
+
+        #lstm_out = lstm_out*self.scale.view(1,1,-1) + self.offset.view(1,1,-1)
+
+        #print("after lstm output dimensions: ", lstm_out.shape) # [1, 10, 65]
+
+        lstm_out = lstm_out.squeeze(0) # lösche erste dimension (batch_size)
+
+        #print("after lstm-last dimensions: ", lstm_out.shape) # [10, 65]
+
+        lstm_out = self.sigmoid(lstm_out) # um werte von tanh [-1, 1] mit sigmoid auf bereich zwischen [0, 1] zu bringen
+
+        #print("before head dimensions: ", fea_back.shape) # [10, 2048]
+
+        single_frame_pred = self.fc(fea_back) # nur den letzten für den head nehmen
+
+        #print("after head dimensions: ", single_frame_pred.shape) # [10, 65]
+
+        # Multipliziere den LSTM output mit dem Head output
+        mul_features = torch.mul(lstm_out, single_frame_pred)
+
+        #print("after mul dimensions: ", mul_features.shape) # [10, 65]
+
+        reg = self.fc_out(mul_features)
+
+        #print("before last_out dimensions: ", reg.shape) # [10, 129]
+
+        # Nimm nur die features vom letzten
+        reg = reg[-1].unsqueeze(0) # letzter und eine dimension hinzufügen für batch_size
+
+        #print("final dimensions: ", reg.shape) # [1, 129]
+
+        return reg
+    
+
+class RegressionNetCNN_LSTM_HEAD_SKIP_mul_time_V3(nn.Module):
+    def __init__(
+        self,
+        backbone,
+        input_shape,
+        anchors,
+        pool_channels,
+        fc_hidden_size,
+        pretrained=False,
+    ):
+        """Initializes the train ego-path detection model for the regression method.
+
+        Args:
+            backbone (str): Backbone to use in the model (e.g. "resnet18", "efficientnet-b3", etc.).
+            input_shape (tuple): Input shape (C, H, W).
+            anchors (int): Number of horizontal anchors in the input image where the path is regressed.
+            pool_channels (int): Number of output channels of the pooling layer.
+            fc_hidden_size (int): Number of units in the hidden layer of the fully connected part.
+            pretrained (bool, optional): Whether to use pretrained weights for the backbone. Defaults to False.
+        """
+        super(RegressionNetCNN_LSTM_HEAD_SKIP_mul_time_V3, self).__init__()
+        if backbone.startswith("efficientnet"):
+            self.backbone = EfficientNetBackbone(version=backbone[13:], pretrained=pretrained)
+        elif backbone.startswith("resnet"):
+            self.backbone = ResNetBackbone(version=backbone[6:], pretrained=pretrained)
+        elif backbone.startswith("mobilenet"):
+            self.backbone = MobileNetV3_Backbone(version=backbone[10:], pretrained=pretrained)
+        elif backbone.startswith("densenet"):
+            self.backbone = Densenet_Backbone(version=backbone[8:], pretrained=pretrained)
+        else:
+            raise NotImplementedError
+        
+        self.num_channels = pool_channels * math.ceil(input_shape[1] / self.backbone.reduction_factor) * math.ceil(input_shape[2] / self.backbone.reduction_factor) # 8*(512/32)*(512/32)=2048 // 8*16*16=2048
+
+        self.conv = nn.Conv2d(
+            in_channels=self.backbone.out_channels[-1],
+            out_channels=self.num_channels, # 2048
+            kernel_size=1,
+        )  # stride=1, padding=0
+        self.pool = nn.AdaptiveMaxPool2d((1, 1))  # Global adaptive max pooling
+
+        # Fully connected layers Backbone-LSTM
+        self.fc_in = nn.Sequential(
+            nn.Linear(self.num_channels, int(self.num_channels/2)), # 1. Linear Layer (2048, 1024)
+            nn.ReLU(inplace=True),
+            nn.Linear(int(self.num_channels/2), 1), # 1. Linear Layer (1024, 1)
+            nn.ReLU(inplace=True),
+        )
+
+        # Fully connected layers Backbone-LSTM_output -> tranpeze head
+        self.fc = nn.Sequential(
+            nn.Linear(self.num_channels, int(fc_hidden_size * 1.75)),           # 1. Linear Layer (2048, 2048*1.75=3584)
+            nn.ReLU(inplace=True),
+            nn.Linear(int(fc_hidden_size * 1.75), int(fc_hidden_size * 1.25)),  # 2. Linear Layer (2048*1.75, 2048*1.25)
+            nn.ReLU(inplace=True),
+            nn.Linear(int(fc_hidden_size * 1.25), fc_hidden_size),              # 3. Linear Layer (2048*1.25, 2048)
+            nn.ReLU(inplace=True),
+            nn.Linear(fc_hidden_size, anchors * 2 + 1),                         # 4. Linear Layer (2048, 129 [output])
+        )
+        
+        # LSTM layer
+        self.lstm = nn.LSTM(input_size=1,  # input size = 1
+                            hidden_size=1, # hidden size = 1
+                            num_layers=CNN_LSTM_num_lstm_layers, batch_first=True) # layers = 2
+        
+        self.sigmoid = nn.Sigmoid()
+        
+        #self.scale = nn.Parameter(1/2*torch.ones(CNN_LSTM_lstm_input_size),requires_grad=True)
+        #self.offset = nn.Parameter(0.5*torch.ones(CNN_LSTM_lstm_input_size),requires_grad=True)
+        
+        self.fc_out = nn.Sequential(
+            nn.ReLU(inplace=False), # inplace = False sonst Probleme mit LSTM
+            nn.Linear(anchors * 2 + 1, anchors * 2 + 1), # 2. Linear Layer after LSTM (129 [mul], 129 [output])
+            nn.ReLU(inplace=True),
+            nn.Linear(anchors * 2 + 1, anchors * 2 + 1), # 2. Linear Layer after LSTM (129, 129 [output])
+        )
+
+    def forward(self, x):
+        #start_time_backbone = time.time()
+        
+        # x must be [batch_size], seq_len, inputsize (-1) bzw. channel_size
+        shape = x.shape
+
+        if len(x.shape) == 5:
+            x = x.view(shape[0]*shape[1], *shape[2:]) # (batch_size * seq_len, C, H, W)
+        else:
+            ValueError("Input Tensor for Backbone has uncorrect dimensions !!!")
+        #self.backbone.eval() # um auch batch_norm zu freezen
+        x = self.backbone(x)[0]
+
+        # pooling layers after backbone
+        x = self.conv(x)
+        fea_back = self.pool(x).flatten(start_dim=1)
+        
+        #print("after backbone output dimensions: ", fea_back.shape) # [10, 2048]
+
+        # Fully connected layers before LSTM
+        fea = self.fc_in(fea_back)
+
+        #print("after fc output dimensions: ", fea.shape) # [10, 1]
+
+        # Reshape for LSTM (batch_size, seq_len, input_size=self.num_channels)
+        shape_fc_output = fea.shape                                 # [batch_size * seq_len, output_size (1)]
+        if len(shape) == 5:                                         # training:
+            fea = fea.view(shape[0], shape[1], shape_fc_output[1])  # batch_size = übernehmen, seq_len = übernehmen, num_channels = übernehmen von CNN
+        elif len(shape) == 4:                                       # inference:
+            fea = fea.view(1, shape[0], shape_fc_output[1])         # batch_size = 1, seq_len = übernehmen, num_channels = übernehmen von CNN
+
+        # Apply LSTM
+        lstm_out, _ = self.lstm(fea)
+
+        #lstm_out = lstm_out*self.scale.view(1,1,-1) + self.offset.view(1,1,-1)
+
+        #print("after lstm output dimensions: ", lstm_out.shape) # [1, 10, 1]
+
+        lstm_out = lstm_out.squeeze(0) # lösche erste dimension (batch_size)
+
+        #print("after lstm-last dimensions: ", lstm_out.shape) # [10, 1]
+
+        #print(lstm_out)
+        lstm_out = self.sigmoid(lstm_out) # um werte von tanh [-1, 1] mit sigmoid auf bereich zwischen [0, 1] zu bringen
+        #print(lstm_out)
+
+        #print("before head dimensions: ", fea_back.shape) # [10, 2048]
+
+        single_frame_pred = self.fc(fea_back) # nur den letzten für den head nehmen
+
+        #print("after head dimensions: ", single_frame_pred.shape) # [10, 129]
+
+        # Multipliziere den LSTM output mit dem Head output
+        mul_features = torch.mul(lstm_out, single_frame_pred)
+
+        #print("after mul dimensions: ", mul_features.shape) # [10, 129]
+
+        reg = self.fc_out(mul_features)
+
+        #print("before last_out dimensions: ", reg.shape) # [10, 129]
+
+        # Nimm nur die features vom letzten
+        reg = reg[-1].unsqueeze(0) # letzter und eine dimension hinzufügen für batch_size
+
+        #print("final dimensions: ", reg.shape) # [1, 129]
+
+        return reg

@@ -4,9 +4,9 @@ python detect_IoU.py kind-donkey-84 data/temporalDataset_video.mp4 --show-crop -
 # %%
 
 # Simulate command-line arguments
-#import sys
+import sys
 #sys.argv = ['ipykernel_launcher.py', 'kind-donkey-84', 'data/temporalDataset_video.mp4', '--end',  '120', '--show-crop', '--device', 'cuda:1'] # zum testen nur 120 sekunden
-#sys.argv = ['ipykernel_launcher.py', 'kind-donkey-84', 'data/temporalDataset_video.mp4', '--show-crop', '--device', 'cuda:1']
+sys.argv = ['ipykernel_launcher.py', 'kind-donkey-84', 'data/temporalDataset_video.mp4', '--show-crop', '--device', 'cuda:1']
 # python detect_IoU.py kind-donkey-84 data/temporalDataset_video.mp4 --end 120 --show-crop --device cuda:1
 
 import argparse
@@ -349,7 +349,7 @@ def main(args):
                     crop = detector.get_crop_coords() if args.show_crop else None
                     res = detector.detect(frame) # prediction
                     if current_frame in frame_list:
-                        vis = draw_egopath(frame, res, opacity=0.5, color=(255, 0, 0), crop_coords=crop) # rot
+                        vis = draw_egopath(frame, res, opacity=0.5, color=(0, 189, 80), crop_coords=crop) # grün
                         pred = rails_to_mask(res, frame.size)                                  # converts prediction to a binary mask (pred)
                         img_name = frame_dict.get(current_frame, "Frame-Index nicht gefunden") # gets right annotation-key
                         annotation = annotations[img_name]                                     # gets annotation from json
@@ -358,7 +358,7 @@ def main(args):
                         target = generate_target_segmentation(rails_mask)                      # converts GT from only rails to a binary mask --> whole track-bed
                         ious.append(compute_iou(pred, target))                                 # computes IoU - between 2 binary masks (prediction and GT are rails and track-bed area)
                     else:
-                        vis = draw_egopath(frame, res, crop_coords=crop) # grün
+                        vis = draw_egopath(frame, res, crop_coords=crop) # blau
                     vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
                     out.write(vis)
                     current_frame += 1

@@ -130,7 +130,7 @@ def main(args):
     print("MACs: ", macs)
     print("params: ", params)
     print("---------------------------------------------------")
-    flops = torch.utils.flop_counter.FlopCounterMode(detector.model, depth=1)
+    flops = torch.utils.flop_counter.FlopCounterMode(detector.model, depth=0)
     with flops:
         detector.model(dummyInputTensor).sum()
 
