@@ -30,17 +30,14 @@ Video_3_out.mp4
 test_* 
 
 # videos von allen finalen auswertungen
-final_temporal_auswertungen/kind-waterfall-363.mp4
-final_temporal_auswertungen/autumn-valley-364.mp4
-final_temporal_auswertungen/dandy-totem-361.mp4
-final_temporal_auswertungen/silvery-field-386.mp4
-final_temporal_auswertungen/fanciful-dream-388.mp4
-final_temporal_auswertungen/morning-dawn-358.mp4
-final_temporal_auswertungen/neat-water-359.mp4
-final_temporal_auswertungen/twilight-monkey-362.mp4
-final_temporal_auswertungen/trim-pyramid-387.mp4
-final_temporal_auswertungen/stellar-plant-360.mp4
-final_temporal_auswertungen/single-frame-based.mp4
-
-# videos von allen finalen auswertungen
+final_temporal_evaluations/kind-waterfall-363.mp4
+final_temporal_evaluations/autumn-valley-364.mp4
+final_temporal_evaluations/dandy-totem-361.mp4
+final_temporal_evaluations/silvery-field-386.mp4
+final_temporal_evaluations/fanciful-dream-388.mp4
+final_temporal_evaluations/morning-dawn-358.mp4
+final_temporal_evaluations/neat-water-359.mp4
+final_temporal_evaluations/twilight-monkey-362.mp4
+final_temporal_evaluations/trim-pyramid-387.mp4
+final_temporal_evaluations/stellar-plant-360.mp4
 final_temporal_evaluations/single-frame-based.mp4
