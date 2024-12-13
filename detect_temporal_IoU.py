@@ -10,8 +10,8 @@ CALC IoU:
 # Simulate command-line arguments
 import sys
 #sys.argv = ['ipykernel_launcher.py', 'quiet-field-354', 'data/temporalDataset_video.mp4', '--end',  '120', '--show-crop', '--device', 'cuda:1'] # zum testen nur 120 sekunden
-#sys.argv = ['ipykernel_launcher.py', 'twilight-monkey-362', 'data/temporalDataset_video.mp4', '--output', 'final_temporal_auswertungen/', '--show-crop', '--device', 'cuda:1']
-# python detect_temporal_IoU.py twilight-monkey-362 data/temporalDataset_video.mp4 --output final_temporal_auswertungen --show-crop --device cuda:0
+#sys.argv = ['ipykernel_launcher.py', 'twilight-monkey-362', 'data/temporalDataset_video.mp4', '--output', 'final_temporal_evaluations/', '--show-crop', '--device', 'cuda:1']
+# python detect_temporal_IoU.py twilight-monkey-362 data/temporalDataset_video.mp4 --output final_temporal_evaluations --show-crop --device cuda:0
 
 import argparse
 import os
@@ -390,7 +390,7 @@ def main(args):
             ious = np.array(ious) # convert to np array
             
             print("writing average IoUs to txt file ...")
-            save_path=os.path.join(base_path, "final_temporal_auswertungen")
+            save_path=os.path.join(base_path, "final_temporal_evaluations")
             save_name = f"{args.model}.txt"
             with open(os.path.join(save_path, save_name), 'w') as file:
                 for item in ious:
