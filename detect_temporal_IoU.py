@@ -203,7 +203,7 @@ def main(args):
 
     extension = os.path.splitext(args.input)[1]
     #outname = f"{os.path.splitext(os.path.basename(args.input))[0]}_out{extension}"
-    outname = f"{args.model}{extension}"
+    outname = f"{args.model}_ogAutocrop{extension}"
     if args.output is not None:
         os.makedirs(args.output, exist_ok=True)
         output_path = os.path.join(args.output, outname)
@@ -391,7 +391,7 @@ def main(args):
             
             print("writing average IoUs to txt file ...")
             save_path=os.path.join(base_path, "final_temporal_evaluations")
-            save_name = f"{args.model}.txt"
+            save_name = f"{args.model}_ogAutocrop.txt"
             with open(os.path.join(save_path, save_name), 'w') as file:
                 for item in ious:
                     file.write(f"{item}\n")  # Jeden Wert in einer neuen Zeile schreiben

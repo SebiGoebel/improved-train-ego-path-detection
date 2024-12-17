@@ -283,8 +283,8 @@ def main(args):
         #print("test_indices:")
         #print(test_indices)
         #print("length of test indices: ", len(test_indices))
-        #print("first train index: ", test_indices[0])
-        #print("last train index: ", test_indices[-1])
+        #print("first test index: ", test_indices[0])
+        #print("last test index: ", test_indices[-1])
         set_seeds(config["seed"])  # reset random state
 
         test_indices = lösche_warmup_indices(test_indices)

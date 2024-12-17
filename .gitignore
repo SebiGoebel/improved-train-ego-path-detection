@@ -41,3 +41,18 @@ final_temporal_evaluations/twilight-monkey-362.mp4
 final_temporal_evaluations/trim-pyramid-387.mp4
 final_temporal_evaluations/stellar-plant-360.mp4
 final_temporal_evaluations/single-frame-based.mp4
+final_temporal_evaluations/single-frame-based-original-autocrop.mp4
+final_temporal_evaluations/TEP-adapted-autocrop.mp4
+final_temporal_evaluations/TEP-original.mp4
+
+# ogAutocrop evaluations
+final_temporal_evaluations/kind-waterfall-363_ogAutocrop.mp4
+final_temporal_evaluations/autumn-valley-364_ogAutocrop.mp4
+final_temporal_evaluations/dandy-totem-361_ogAutocrop.mp4
+final_temporal_evaluations/silvery-field-386_ogAutocrop.mp4
+final_temporal_evaluations/fanciful-dream-388_ogAutocrop.mp4
+final_temporal_evaluations/morning-dawn-358_ogAutocrop.mp4
+final_temporal_evaluations/neat-water-359_ogAutocrop.mp4
+final_temporal_evaluations/twilight-monkey-362_ogAutocrop.mp4
+final_temporal_evaluations/trim-pyramid-387_ogAutocrop.mp4
+final_temporal_evaluations/stellar-plant-360_ogAutocrop.mp4

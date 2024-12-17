@@ -68,8 +68,11 @@ def main(args):
         **config,
     }
 
+    images_path = "/srv/cdl-eml/datasets/railsem19/rs19_val/jpgs/rs19_val"
+    annotations_path = "/srv/cdl-eml/datasets/railsem19/egopath/rs19_egopath.json"
+
     set_seeds(config["seed"])  # set random state
-    with open(config["annotations_path"]) as json_file:
+    with open(annotations_path) as json_file:
         indices = list(range(len(json.load(json_file).keys())))
     random.shuffle(indices)
     proportions = (config["train_prop"], config["val_prop"], config["test_prop"])
@@ -79,19 +82,19 @@ def main(args):
     if len(test_indices) > 0:
         logger.info("\nEvaluating single-frame-based model on TEP test dataset...")
         test_dataset = PathsDataset(
-            imgs_path=config["images_path"],
-            annotations_path=config["annotations_path"],
+            imgs_path=images_path,
+            annotations_path=annotations_path,
             indices=test_indices,
             config=config,
             method="segmentation",
-            img_crop=None,          # tuple (eval crops) or str ("random" -> random crop) or None (whole image)
+            img_crop="random",          # tuple (eval crops) or str ("random" -> random crop) or None (whole image)
             img_aug=False,          # alle data augmentations auf False gesetzt --> kein ColorJitter
             img_rd_flip=False,  	# alle data augmentations auf False gesetzt --> keine random Flips
         )
         iou_evaluator = IoUEvaluator(
             dataset=test_dataset,
             model_path=model_path,
-            crop="auto",           # "auto" -> autocrop technique for test dataset (with 50 iterations) // None -> for when random crop is done in dataset class
+            crop=None,           # "auto" -> autocrop technique for test dataset (with 50 iterations) // None -> for when random crop is done in dataset class
             runtime="pytorch",
             device=device,
         )
