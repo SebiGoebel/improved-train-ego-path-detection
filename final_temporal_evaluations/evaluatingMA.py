@@ -54,29 +54,29 @@ def split_into_parts(ious, part_size=76):
     return parts, percentage_values
 
 # Einlesen der Listen aus den Textdateien
-single_frame_based = read_list_from_file('single-frame-based.txt') # single-frame-based
+single_frame_based = read_list_from_file('single-frame-based.txt')                      # single-frame-based
 single_frame_based_og = read_list_from_file('single-frame-based-original-autocrop.txt') # single-frame-based
-original = read_list_from_file('TEP-original.txt') # single-frame-based
-sequence_based_1 = read_list_from_file('stellar-plant-360.txt')    # CNN_FC_LSTM
-sequence_based_2 = read_list_from_file('neat-water-359.txt')       # CNN_LSTM_V1
-sequence_based_3 = read_list_from_file('morning-dawn-358.txt')     # CNN_FC_FCOUT_V1
-sequence_based_4 = read_list_from_file('dandy-totem-361.txt')      # CNN_LSTM_V2
-sequence_based_5 = read_list_from_file('twilight-monkey-362.txt')  # CNN_LSTM_HEAD
-sequence_based_6 = read_list_from_file('kind-waterfall-363.txt')   # CNN_FLAT_FC
-sequence_based_7 = read_list_from_file('autumn-valley-364.txt')    # CNN_FC_FCOUT_V2
-sequence_based_8 = read_list_from_file('silvery-field-386.txt')    # CNN_LSTM_SKIP_CAT
-sequence_based_9 = read_list_from_file('trim-pyramid-387.txt')     # CNN_LSTM_SKIP_MUL_FEATURE
-sequence_based_10 = read_list_from_file('fanciful-dream-388.txt')  # CNN_LSTM_SKIP_MUL_TIME
-sequence_based_1_og = read_list_from_file('stellar-plant-360_ogAutocrop.txt')    # CNN_FC_LSTM
-sequence_based_2_og = read_list_from_file('neat-water-359_ogAutocrop.txt')       # CNN_LSTM_V1
-sequence_based_3_og = read_list_from_file('morning-dawn-358_ogAutocrop.txt')     # CNN_FC_FCOUT_V1
-sequence_based_4_og = read_list_from_file('dandy-totem-361_ogAutocrop.txt')      # CNN_LSTM_V2
-sequence_based_5_og = read_list_from_file('twilight-monkey-362_ogAutocrop.txt')  # CNN_LSTM_HEAD
-sequence_based_6_og = read_list_from_file('kind-waterfall-363_ogAutocrop.txt')   # CNN_FLAT_FC
-sequence_based_7_og = read_list_from_file('autumn-valley-364_ogAutocrop.txt')    # CNN_FC_FCOUT_V2
-sequence_based_8_og = read_list_from_file('silvery-field-386_ogAutocrop.txt')    # CNN_LSTM_SKIP_CAT
-sequence_based_9_og = read_list_from_file('trim-pyramid-387_ogAutocrop.txt')     # CNN_LSTM_SKIP_MUL_FEATURE
-sequence_based_10_og = read_list_from_file('fanciful-dream-388_ogAutocrop.txt')  # CNN_LSTM_SKIP_MUL_TIME
+original = read_list_from_file('TEP-original.txt')                                      # single-frame-based
+sequence_based_1 = read_list_from_file('stellar-plant-360.txt')                         # CNN_FC_LSTM
+sequence_based_2 = read_list_from_file('neat-water-359.txt')                            # CNN_LSTM_V1
+sequence_based_3 = read_list_from_file('morning-dawn-358.txt')                          # CNN_FC_FCOUT_V1
+sequence_based_4 = read_list_from_file('dandy-totem-361.txt')                           # CNN_LSTM_V2
+sequence_based_5 = read_list_from_file('twilight-monkey-362.txt')                       # CNN_LSTM_HEAD
+sequence_based_6 = read_list_from_file('kind-waterfall-363.txt')                        # CNN_FLAT_FC
+sequence_based_7 = read_list_from_file('autumn-valley-364.txt')                         # CNN_FC_FCOUT_V2
+sequence_based_8 = read_list_from_file('silvery-field-386.txt')                         # CNN_LSTM_SKIP_CAT
+sequence_based_9 = read_list_from_file('trim-pyramid-387.txt')                          # CNN_LSTM_SKIP_MUL_FEATURE
+sequence_based_10 = read_list_from_file('fanciful-dream-388.txt')                       # CNN_LSTM_SKIP_MUL_TIME
+sequence_based_1_og = read_list_from_file('stellar-plant-360_ogAutocrop.txt')           # CNN_FC_LSTM
+sequence_based_2_og = read_list_from_file('neat-water-359_ogAutocrop.txt')              # CNN_LSTM_V1
+sequence_based_3_og = read_list_from_file('morning-dawn-358_ogAutocrop.txt')            # CNN_FC_FCOUT_V1
+sequence_based_4_og = read_list_from_file('dandy-totem-361_ogAutocrop.txt')             # CNN_LSTM_V2
+sequence_based_5_og = read_list_from_file('twilight-monkey-362_ogAutocrop.txt')         # CNN_LSTM_HEAD
+sequence_based_6_og = read_list_from_file('kind-waterfall-363_ogAutocrop.txt')          # CNN_FLAT_FC
+sequence_based_7_og = read_list_from_file('autumn-valley-364_ogAutocrop.txt')           # CNN_FC_FCOUT_V2
+sequence_based_8_og = read_list_from_file('silvery-field-386_ogAutocrop.txt')           # CNN_LSTM_SKIP_CAT
+sequence_based_9_og = read_list_from_file('trim-pyramid-387_ogAutocrop.txt')            # CNN_LSTM_SKIP_MUL_FEATURE
+sequence_based_10_og = read_list_from_file('fanciful-dream-388_ogAutocrop.txt')         # CNN_LSTM_SKIP_MUL_TIME
 
 
 #printen der gesamten IoUs pro model
@@ -152,12 +152,12 @@ plt.axvspan(highlight_start, highlight_end, color='green', alpha=0.3, label='swi
 plt.plot(x_values, sequence_based_1_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_2_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_3_parts[sequence_num]         , marker='.', color='brown')
-plt.plot(x_values, sequence_based_5_parts[sequence_num]         , marker='.', color='darkgray')
+plt.plot(x_values, sequence_based_4_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_6_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_7_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_8_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_9_parts[sequence_num]         , marker='.', color='darkgray')
-plt.plot(x_values, sequence_based_1_parts_og[sequence_num]      , marker='.', color='cyan')
+plt.plot(x_values, sequence_based_10_parts[sequence_num]        , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_2_parts_og[sequence_num]      , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_3_parts_og[sequence_num]      , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_4_parts_og[sequence_num]      , marker='.', color='darkgray')
@@ -169,9 +169,10 @@ plt.plot(x_values, sequence_based_9_parts_og[sequence_num]      , marker='.', co
 plt.plot(x_values, sequence_based_10_parts_og[sequence_num]     , marker='.', color='darkgray')
 plt.plot(x_values, original_parts[sequence_num]                 , marker='.', color='blue', label=f'original')
 plt.plot(x_values, single_frame_based_parts[sequence_num]       , marker='.', color='orange', label=f'single-frame-based')
-plt.plot(x_values, single_frame_based_parts_og[sequence_num]    , marker='.', color='green', label=f'single-frame-based_ogA')
-plt.plot(x_values, sequence_based_10_parts[sequence_num]        , marker='.', color='red', label=f'CNN_LSTM_SKIP_MUL_TIME')
-plt.plot(x_values, sequence_based_4_parts[sequence_num]         , marker='.', color='purple', label=f'CNN_LSTM_HEAD')
+plt.plot(x_values, single_frame_based_parts_og[sequence_num]    , marker='.', color='green', label=f'single-frame-based (ogA)')
+plt.plot(x_values, sequence_based_1_parts_og[sequence_num]      , marker='.', color='purple', label=f'CNN_FC_LSTM (ogA)')
+plt.plot(x_values, sequence_based_3_parts[sequence_num]         , marker='.', color='cyan', label=f'CNN_FC_FCOUT')
+plt.plot(x_values, sequence_based_5_parts[sequence_num]         , marker='.', color='red', label=f'CNN_LSTM_HEAD')
 plt.xlabel('Frame')
 plt.ylabel('IoU')
 plt.legend() # Legende hinzufügen
@@ -197,7 +198,7 @@ highlight_start, highlight_end = switch_drive_by[sequence_num]
 plt.axvspan(highlight_start, highlight_end, color='green', alpha=0.3, label='switch')
 plt.plot(x_values, sequence_based_1_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_2_parts[sequence_num]         , marker='.', color='darkgray')
-plt.plot(x_values, sequence_based_3_parts[sequence_num]         , marker='.', color='brown')
+plt.plot(x_values, sequence_based_3_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_4_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_5_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_6_parts[sequence_num]         , marker='.', color='darkgray')
@@ -216,8 +217,10 @@ plt.plot(x_values, sequence_based_9_parts_og[sequence_num]      , marker='.', co
 plt.plot(x_values, sequence_based_10_parts_og[sequence_num]     , marker='.', color='darkgray')
 plt.plot(x_values, original_parts[sequence_num]                 , marker='.', color='blue', label=f'original')
 plt.plot(x_values, single_frame_based_parts[sequence_num]       , marker='.', color='orange', label=f'single-frame-based')
-plt.plot(x_values, single_frame_based_parts_og[sequence_num]    , marker='.', color='green', label=f'single-frame-based_ogA')
-plt.plot(x_values, sequence_based_1_parts_og[sequence_num]      , marker='.', color='red', label=f'CNN_FC_LSTM_ogA')
+plt.plot(x_values, single_frame_based_parts_og[sequence_num]    , marker='.', color='green', label=f'single-frame-based (ogA)')
+plt.plot(x_values, sequence_based_1_parts_og[sequence_num]      , marker='.', color='purple', label=f'CNN_FC_LSTM (ogA)')
+plt.plot(x_values, sequence_based_3_parts[sequence_num]         , marker='.', color='cyan', label=f'CNN_FC_FCOUT')
+plt.plot(x_values, sequence_based_1_parts_og[sequence_num]      , marker='.', color='red', label=f'CNN_FC_LSTM (ogA)')
 plt.xlabel('Frame')
 plt.ylabel('IoU')
 plt.legend() # Legende hinzufügen
@@ -242,7 +245,7 @@ plt.figure(figsize=(10, 6))
 highlight_start, highlight_end = switch_drive_by[sequence_num]
 plt.axvspan(highlight_start, highlight_end, color='green', alpha=0.3, label='switch')
 plt.plot(x_values, sequence_based_1_parts[sequence_num]         , marker='.', color='darkgray')
-plt.plot(x_values, sequence_based_3_parts[sequence_num]         , marker='.', color='brown')
+plt.plot(x_values, sequence_based_3_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_4_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_5_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_6_parts[sequence_num]         , marker='.', color='darkgray')
@@ -250,7 +253,7 @@ plt.plot(x_values, sequence_based_7_parts[sequence_num]         , marker='.', co
 plt.plot(x_values, sequence_based_8_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_9_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_10_parts[sequence_num]        , marker='.', color='darkgray')
-plt.plot(x_values, sequence_based_1_parts_og[sequence_num]      , marker='.', color='cyan')
+plt.plot(x_values, sequence_based_1_parts_og[sequence_num]      , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_2_parts_og[sequence_num]      , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_3_parts_og[sequence_num]      , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_4_parts_og[sequence_num]      , marker='.', color='darkgray')
@@ -262,7 +265,9 @@ plt.plot(x_values, sequence_based_9_parts_og[sequence_num]      , marker='.', co
 plt.plot(x_values, sequence_based_10_parts_og[sequence_num]     , marker='.', color='darkgray')
 plt.plot(x_values, original_parts[sequence_num]                 , marker='.', color='blue', label=f'original')
 plt.plot(x_values, single_frame_based_parts[sequence_num]       , marker='.', color='orange', label=f'single-frame-based')
-plt.plot(x_values, single_frame_based_parts_og[sequence_num]    , marker='.', color='green', label=f'single-frame-based_ogA')
+plt.plot(x_values, single_frame_based_parts_og[sequence_num]    , marker='.', color='green', label=f'single-frame-based (ogA)')
+plt.plot(x_values, sequence_based_1_parts_og[sequence_num]      , marker='.', color='purple', label=f'CNN_FC_LSTM (ogA)')
+plt.plot(x_values, sequence_based_3_parts[sequence_num]         , marker='.', color='cyan', label=f'CNN_FC_FCOUT')
 plt.plot(x_values, sequence_based_2_parts[sequence_num]         , marker='.', color='red', label=f'CNN_LSTM_V1')
 plt.xlabel('Frame')
 plt.ylabel('IoU')
@@ -289,7 +294,7 @@ highlight_start, highlight_end = switch_drive_by[sequence_num]
 plt.axvspan(highlight_start, highlight_end, color='green', alpha=0.3, label='switch')
 plt.plot(x_values, sequence_based_1_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_2_parts[sequence_num]         , marker='.', color='darkgray')
-plt.plot(x_values, sequence_based_3_parts[sequence_num]         , marker='.', color='brown')
+plt.plot(x_values, sequence_based_3_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_4_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_5_parts[sequence_num]         , marker='.', color='darkgray')
 plt.plot(x_values, sequence_based_6_parts[sequence_num]         , marker='.', color='darkgray')
@@ -308,8 +313,10 @@ plt.plot(x_values, sequence_based_9_parts_og[sequence_num]      , marker='.', co
 plt.plot(x_values, sequence_based_10_parts_og[sequence_num]     , marker='.', color='darkgray')
 plt.plot(x_values, original_parts[sequence_num]                 , marker='.', color='blue', label=f'original')
 plt.plot(x_values, single_frame_based_parts[sequence_num]       , marker='.', color='orange', label=f'single-frame-based')
-plt.plot(x_values, single_frame_based_parts_og[sequence_num]    , marker='.', color='green', label=f'single-frame-based_ogA')
-plt.plot(x_values, sequence_based_1_parts_og[sequence_num]      , marker='.', color='red', label=f'CNN_FC_LSTM_ogA')
+plt.plot(x_values, single_frame_based_parts_og[sequence_num]    , marker='.', color='green', label=f'single-frame-based (ogA)')
+plt.plot(x_values, sequence_based_1_parts_og[sequence_num]      , marker='.', color='purple', label=f'CNN_FC_LSTM (ogA)')
+plt.plot(x_values, sequence_based_3_parts[sequence_num]         , marker='.', color='cyan', label=f'CNN_FC_FCOUT')
+plt.plot(x_values, sequence_based_1_parts_og[sequence_num]      , marker='.', color='red', label=f'CNN_FC_LSTM (ogA)')
 plt.xlabel('Frame')
 plt.ylabel('IoU')
 plt.legend() # Legende hinzufügen
